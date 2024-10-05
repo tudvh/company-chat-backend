@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 
+import { ProfileResponse } from './profile.response'
+
 export class AccessTokenResponse {
   @ApiProperty()
   accessToken: string
@@ -28,4 +30,7 @@ export class LoginResponse {
 
   @ApiProperty()
   refreshTokenExpiresIn: number
+
+  @ApiProperty()
+  userProfile: ProfileResponse
 }

@@ -13,7 +13,7 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 50, name: 'last_name' })
   lastName: string
 
-  @Column({ type: 'varchar', length: 20, name: 'dob', nullable: true })
+  @Column({ type: 'date', name: 'dob', nullable: true })
   dob: string
 
   @Column({ type: 'tinyint', default: 1, name: 'gender', nullable: true })
