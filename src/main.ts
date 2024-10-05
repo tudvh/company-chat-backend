@@ -11,7 +11,7 @@ import { RequestLoggingInterceptor } from './common/interceptors/logger.intercep
 
 async function bootstrap() {
   // Configure Winston logger with a console transport and specific formatting.
-  const logger = WinstonModule.createLogger({
+  const winstonLogger = WinstonModule.createLogger({
     transports: [
       new winston.transports.Console({
         format: winston.format.combine(
@@ -26,21 +26,21 @@ async function bootstrap() {
   // Create a new instance of the NestJS application using the AppModule
   // and pass the configured Winston logger.
   const app = await NestFactory.create(AppModule, {
-    logger,
+    logger: winstonLogger,
   })
 
   // Retrieve the configuration service to access environment variables or configurations.
   const configService = app.get(ConfigService)
 
   // Configure Swagger for API documentation.
-  const swaggerConfig = new DocumentBuilder()
+  const swaggerOptions = new DocumentBuilder()
     .setTitle('API Documentation')
     .setDescription('The API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build()
-  const document = SwaggerModule.createDocument(app, swaggerConfig)
-  SwaggerModule.setup('api', app, document)
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerOptions)
+  SwaggerModule.setup('api', app, swaggerDocument)
 
   // Enable CORS for the application, allowing requests from the specified origin.
   app.enableCors({
@@ -64,8 +64,11 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter())
 
   // Start the application and listen on the configured port.
-  await app.listen(configService.get('APP_PORT'), () => {
-    console.log(`Server is running on ${configService.get('APP_API_URL')}`)
+  const port = configService.get('APP_PORT')
+  const apiUrl = configService.get('APP_API_URL')
+  await app.listen(port, () => {
+    console.log(`Server is running on ${apiUrl}`)
   })
 }
-bootstrap();
+
+bootstrap()
