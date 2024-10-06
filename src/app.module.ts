@@ -5,6 +5,7 @@ import { join } from 'path'
 
 import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './modules/auth/auth.module'
+import { PusherModule } from './modules/pusher/pusher.module'
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from './modules/auth/auth.module'
     }),
     DatabaseModule,
     AuthModule,
+    PusherModule,
   ],
 })
 export class AppModule {}

@@ -15,6 +15,7 @@ import {
   RefreshTokenResponse,
 } from './dto/response'
 import { BcryptUtil } from '@/common/utils'
+import { PusherService } from '../pusher/pusher.service'
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly pusherService: PusherService,
   ) {}
 
   public async login(loginRequest: LoginRequest): Promise<LoginResponse> {
@@ -123,6 +125,11 @@ export class AuthService {
 
     const accessToken = await this.createAccessToken(user)
     return accessToken
+  }
+
+  public async pusher() {
+    this.pusherService.trigger('toanf', 'toanf', { name: 'toanf' })
+    return { toanf: '1' }
   }
 
   private async createAccessToken(user: User): Promise<AccessTokenResponse> {
