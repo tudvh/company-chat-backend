@@ -56,4 +56,13 @@ export class AuthController {
     const result = await this.authService.pusher()
     return result
   }
+
+  @Post('/test-call')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse()
+  public async call(
+  ){
+    const result = await this.authService.call()
+    return result
+  }
 }
