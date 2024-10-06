@@ -132,6 +132,22 @@ export class AuthService {
     return { toanf: '1' }
   }
 
+  public async call() {
+    return {
+      action: 'connect',
+      from: {
+        type: 'internal',
+        number: 'toanf',
+        alias: 'toanf',
+      },
+      to: {
+        type: 'internal',
+        number: 'tus',
+        alias: 'tus',
+      },
+    }
+  }
+
   private async createAccessToken(user: User): Promise<AccessTokenResponse> {
     const payload = { userId: user.id }
     const accessToken = this.jwtService.sign(payload)
