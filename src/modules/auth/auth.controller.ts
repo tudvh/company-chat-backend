@@ -47,22 +47,4 @@ export class AuthController {
     const result = await this.authService.refreshAccessToken(refreshAccessTokenRequest)
     return result
   }
-
-  @Post('/test-pusher')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse()
-  public async pusher(
-  ){
-    const result = await this.authService.pusher()
-    return result
-  }
-
-  @Post('/test-call')
-  @HttpCode(HttpStatus.OK)
-  @ApiOkResponse()
-  public async call(
-  ){
-    const result = await this.authService.call()
-    return result
-  }
 }
