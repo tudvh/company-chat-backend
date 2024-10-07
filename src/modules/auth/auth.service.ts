@@ -6,7 +6,9 @@ import axios from 'axios'
 import { plainToInstance } from 'class-transformer'
 import { Repository } from 'typeorm'
 
+import { BcryptUtil } from '@/common/utils'
 import { User } from '@/database/entities'
+import { PusherService } from '../pusher/pusher.service'
 import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import {
   AccessTokenResponse,
@@ -14,8 +16,6 @@ import {
   ProfileResponse,
   RefreshTokenResponse,
 } from './dto/response'
-import { BcryptUtil } from '@/common/utils'
-import { PusherService } from '../pusher/pusher.service'
 
 @Injectable()
 export class AuthService {
@@ -125,27 +125,6 @@ export class AuthService {
 
     const accessToken = await this.createAccessToken(user)
     return accessToken
-  }
-
-  public async pusher() {
-    this.pusherService.trigger('toanf', 'toanf', { name: 'toanf' })
-    return { toanf: '1' }
-  }
-
-  public async call() {
-    return {
-      action: 'connect',
-      from: {
-        type: 'internal',
-        number: 'toanf',
-        alias: 'toanf',
-      },
-      to: {
-        type: 'internal',
-        number: 'tus',
-        alias: 'tus',
-      },
-    }
   }
 
   private async createAccessToken(user: User): Promise<AccessTokenResponse> {

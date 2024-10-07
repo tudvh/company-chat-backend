@@ -1,6 +1,6 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { PusherService } from './pusher.service';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { PusherService } from './pusher.service'
 
 @Module({
   imports: [ConfigModule.forRoot()],

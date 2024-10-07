@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { BaseEntity } from './base.entity'
+import { Channel } from './channel.entity'
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -28,7 +29,7 @@ export class User extends BaseEntity {
   @Column({ type: 'text', name: 'avatar_url', nullable: true })
   avatarUrl: string
 
-  @Column({ type: 'varchar', length: 100, name: 'email' })
+  @Column({ type: 'varchar', unique: true, length: 100, name: 'email' })
   email: string
 
   @Column({ type: 'varchar', length: 255, name: 'password', nullable: true })
@@ -37,9 +38,12 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 30, name: 'google_id', nullable: true })
   googleId: string
 
-  @Column({ type: 'smallint', default: 1, name: 'type' })
+  @Column({ type: 'smallint', unsigned: true, default: 1, name: 'type' })
   type: string
 
   @Column({ type: 'boolean', default: true, name: 'is_active' })
   isActive: boolean
+
+  @OneToMany(() => Channel, channel => channel.creator)
+  channels: Channel[]
 }
