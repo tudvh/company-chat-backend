@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { BaseEntity } from './base.entity'
+import { ChannelUser } from './channel-user.entity'
 import { Channel } from './channel.entity'
 
 @Entity({ name: 'users' })
@@ -45,5 +46,8 @@ export class User extends BaseEntity {
   isActive: boolean
 
   @OneToMany(() => Channel, channel => channel.creator)
-  channels: Channel[]
+  myChannels: Channel[]
+
+  @OneToMany(() => ChannelUser, channelUser => channelUser.user)
+  channelUsers: ChannelUser[]
 }
