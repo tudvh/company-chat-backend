@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { RtcRole, RtcTokenBuilder } from 'agora-access-token'
 
-// import { Role as RtcRole, RtcTokenBuilder } from '@/common/libs/RtcTokenBuilder2'
 import { PusherService } from '../pusher/pusher.service'
-import { RtcTokenBuilder, RtcRole } from 'agora-access-token'
 
 @Injectable()
 export class TestService {
@@ -20,15 +19,13 @@ export class TestService {
     const appId = this.configService.get('AGORA_APP_ID')
     const appCertificate = this.configService.get('AGORA_APP_CERTIFICATE')
     const channelName = 'main'
-    const account = 123
+    const account = '0'
     const role = RtcRole.PUBLISHER
-    const tokenExpirationInSecond = 3600
-    const privilegeExpirationInSecond = 3600
-
+    const expirationTimeInSeconds = 3600
     const currentTimestamp = Math.floor(Date.now() / 1000)
-    const privilegeExpiredTs = currentTimestamp + tokenExpirationInSecond
+    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds
 
-    const tokenWithUserAccount = RtcTokenBuilder.buildTokenWithUid(
+    const tokenWithUserAccount = RtcTokenBuilder.buildTokenWithAccount(
       appId,
       appCertificate,
       channelName,
