@@ -20,8 +20,8 @@ export class TestController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse()
   @Auth()
-  public call(@Req() request) {
-    const result = this.testService.call(request.user.id)
+  public call() {
+    const result = this.testService.call()
     return result
   }
 }

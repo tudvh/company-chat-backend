@@ -15,7 +15,7 @@ export class TestService {
     this.pusherService.trigger('toanf', 'toanf', { name: 'toanf' })
   }
 
-  public call(userId: string): string {
+  public call(): string {
     const appId = this.configService.get('AGORA_APP_ID')
     const appCertificate = this.configService.get('AGORA_APP_CERTIFICATE')
     const channelName = 'main'
