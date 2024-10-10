@@ -1,4 +1,4 @@
-import { Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common'
+import { Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { Auth } from '@/common/decorators'
