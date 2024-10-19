@@ -1,19 +1,17 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 import { BaseEntity } from './base.entity'
 import { ChannelUser } from './channel-user.entity'
 import { Channel } from './channel.entity'
+import { Room } from './room.entity'
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column({ type: 'varchar', length: 20, name: 'first_name' })
-  firstName: string
-
-  @Column({ type: 'varchar', length: 50, name: 'last_name' })
-  lastName: string
+  @Column({ type: 'varchar', length: 100, name: 'full_name' })
+  fullName: string
 
   @Column({ type: 'date', name: 'dob', nullable: true })
   dob: string
@@ -45,9 +43,20 @@ export class User extends BaseEntity {
   @Column({ type: 'boolean', default: true, name: 'is_active' })
   isActive: boolean
 
-  @OneToMany(() => Channel, channel => channel.creator)
-  myChannels: Channel[]
-
   @OneToMany(() => ChannelUser, channelUser => channelUser.user)
   channelUsers: ChannelUser[]
+
+  @ManyToMany(() => Room, room => room.users)
+  @JoinTable({
+    name: 'room_user',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'room_id', referencedColumnName: 'id' },
+  })
+  rooms: Room[]
+
+  get myChannels(): Channel[] {
+    return this.channelUsers
+      .filter(channelUser => channelUser.isCreator)
+      .map(channelUser => channelUser.channel)
+  }
 }

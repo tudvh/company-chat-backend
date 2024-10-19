@@ -8,7 +8,6 @@ import { Repository } from 'typeorm'
 
 import { BcryptUtil } from '@/common/utils'
 import { User } from '@/database/entities'
-import { PusherService } from '../pusher/pusher.service'
 import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import {
   AccessTokenResponse,
@@ -23,7 +22,6 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly pusherService: PusherService,
   ) {}
 
   public async login(loginRequest: LoginRequest): Promise<LoginResponse> {
@@ -62,13 +60,7 @@ export class AuthService {
       },
     })
 
-    const {
-      sub: googleId,
-      given_name: firstName,
-      family_name: lastName,
-      picture: avatarUrl,
-      email,
-    } = googleUserResponse.data
+    const { sub: googleId, name: fullName, picture: avatarUrl, email } = googleUserResponse.data
 
     let user = await this.userRepository.findOneBy({
       email,
@@ -76,8 +68,7 @@ export class AuthService {
 
     if (!user) {
       user = this.userRepository.create({
-        firstName,
-        lastName,
+        fullName,
         email,
         avatarUrl,
         googleId,
@@ -96,14 +87,7 @@ export class AuthService {
     }
   }
 
-  public async getProfile(userId: string): Promise<ProfileResponse> {
-    const user = await this.userRepository.findOneBy({
-      id: userId,
-    })
-    if (!user) {
-      throw new BadRequestException('User not found')
-    }
-
+  public async getProfile(user: User): Promise<ProfileResponse> {
     return plainToInstance(ProfileResponse, user, {
       excludeExtraneousValues: true,
     })

@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm'
 
 import { BaseEntity } from './base.entity'
 import { Channel } from './channel.entity'
@@ -11,6 +11,9 @@ export class ChannelUser extends BaseEntity {
 
   @PrimaryColumn({ type: 'uuid', name: 'user_id' })
   userId: string
+
+  @Column({ type: 'boolean', default: false, name: 'is_creator' })
+  isCreator: boolean
 
   @ManyToOne(() => Channel, channel => channel.channelUsers)
   @JoinColumn({ name: 'channel_id' })

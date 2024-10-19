@@ -13,9 +13,9 @@ const dataSourceOptions: DataSourceOptions & SeederOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: ['src/**/*.entity.{ts,js}'],
-  subscribers: ['src/**/*.subscriber.{ts,js}'],
-  migrations: ['src/database/migrations/*.{ts,js}'],
+  entities: ['src/**/entities/*.entity.ts'],
+  subscribers: ['src/**/subscriber/*.subscriber.ts'],
+  migrations: ['src/**/migrations/*.ts'],
   seeds: [InitSeeder],
 }
 

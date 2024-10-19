@@ -5,6 +5,7 @@ import { join } from 'path'
 
 import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './modules/auth/auth.module'
+import { ChannelModule } from './modules/channel/channel.module'
 import { HealthCheckModule } from './modules/health-check/health-check.module'
 import { PusherModule } from './modules/pusher/pusher.module'
 import { TestModule } from './modules/test/test.module'
@@ -24,6 +25,7 @@ import { TestModule } from './modules/test/test.module'
     HealthCheckModule,
     TestModule,
     AuthModule,
+    ChannelModule,
   ],
 })
 export class AppModule {}
