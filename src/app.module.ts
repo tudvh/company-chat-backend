@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { ChannelModule } from './modules/channel/channel.module'
 import { HealthCheckModule } from './modules/health-check/health-check.module'
 import { PusherModule } from './modules/pusher/pusher.module'
+import { RoomModule } from './modules/room/room.module'
 import { TestModule } from './modules/test/test.module'
 
 @Module({
@@ -26,6 +27,7 @@ import { TestModule } from './modules/test/test.module'
     TestModule,
     AuthModule,
     ChannelModule,
+    RoomModule,
   ],
 })
 export class AppModule {}

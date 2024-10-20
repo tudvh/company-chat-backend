@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { plainToInstance } from 'class-transformer'
 import { UploadApiOptions } from 'cloudinary'
-import { Repository } from 'typeorm'
+import { EntityManager, Repository } from 'typeorm'
 
 import {
   FOLDER_PATH,
@@ -40,30 +40,7 @@ export class ChannelService {
 
         // If a thumbnail file is provided, process and upload it
         if (thumbnailFile) {
-          // Calculate the appropriate size for the thumbnail
-          const thumbnailSize = await UploadUtil.calculateSquareImageSize(
-            thumbnailFile,
-            IMAGE_SIZE.CHANNEL_THUMBNAIL,
-          )
-
-          // Configuration for uploading the thumbnail to Cloudinary
-          const thumbnailUploadOptions: UploadApiOptions = {
-            format: IMAGE_FORMAT.CHANNEL_THUMBNAIL,
-            resource_type: 'image',
-            type: 'authenticated',
-            width: thumbnailSize,
-            height: thumbnailSize,
-            crop: 'fill',
-            public_id: `${FOLDER_PATH.CHANNEL_THUMBNAIL}/${newChannel.id}`,
-          }
-
-          // Upload the thumbnail and save the public ID to the channel
-          const thumbnailUploadResult = await this.cloudinaryService.uploadFile(
-            thumbnailFile,
-            thumbnailUploadOptions,
-          )
-          newChannel.thumbnailPublicId = thumbnailUploadResult.public_id
-          await transactionManager.save(newChannel)
+          await this.processAndUploadThumbnail(transactionManager, newChannel, thumbnailFile)
         }
 
         // Create and save the channel-user association
@@ -78,10 +55,12 @@ export class ChannelService {
         const chatGroup = transactionManager.create(Group, {
           name: GROUP_NAME_DEFAULT.CHAT,
           channelId: newChannel.id,
+          createdAt: new Date().toISOString(),
         })
         const callGroup = transactionManager.create(Group, {
           name: GROUP_NAME_DEFAULT.CALL,
           channelId: newChannel.id,
+          createdAt: new Date(new Date().getTime() + 1000).toISOString(),
         })
         await transactionManager.save([chatGroup, callGroup])
 
@@ -91,12 +70,14 @@ export class ChannelService {
           type: RoomTypeEnum.Chat,
           groupId: chatGroup.id,
           isPrivate: false,
+          createdAt: new Date().toISOString(),
         })
         const callRoom = transactionManager.create(Room, {
           name: ROOM_NAME_DEFAULT,
           type: RoomTypeEnum.Call,
           groupId: callGroup.id,
           isPrivate: false,
+          createdAt: new Date(new Date().getTime() + 1000).toISOString(),
         })
         await transactionManager.save([chatRoom, callRoom])
 
@@ -128,6 +109,58 @@ export class ChannelService {
     })
 
     return channels.map(channel => this.mapToChannelResponse(channel))
+  }
+
+  public async getMyChannelDetail(
+    userId: string,
+    channelId: string,
+  ): Promise<ChannelDetailResponse> {
+    const channel = await this.channelRepository.findOneOrFail({
+      where: {
+        id: channelId,
+        channelUsers: {
+          userId,
+          isCreator: true,
+        },
+      },
+      relations: ['groups.rooms'],
+      order: {
+        groups: {
+          createdAt: 'ASC',
+          rooms: {
+            createdAt: 'ASC',
+          },
+        },
+      },
+    })
+
+    return this.mapToChannelDetailResponse(channel)
+  }
+
+  private async processAndUploadThumbnail(
+    transactionManager: EntityManager,
+    newChannel: Channel,
+    thumbnailFile: Express.Multer.File,
+  ): Promise<void> {
+    const thumbnailSize = await UploadUtil.calculateSquareImageSize(
+      thumbnailFile,
+      IMAGE_SIZE.CHANNEL_THUMBNAIL,
+    )
+    const thumbnailUploadOptions: UploadApiOptions = {
+      format: IMAGE_FORMAT.CHANNEL_THUMBNAIL,
+      resource_type: 'image',
+      type: 'authenticated',
+      width: thumbnailSize,
+      height: thumbnailSize,
+      crop: 'fill',
+      public_id: `${FOLDER_PATH.CHANNEL_THUMBNAIL}/${newChannel.id}`,
+    }
+    const thumbnailUploadResult = await this.cloudinaryService.uploadFile(
+      thumbnailFile,
+      thumbnailUploadOptions,
+    )
+    newChannel.thumbnailPublicId = thumbnailUploadResult.public_id
+    await transactionManager.save(newChannel)
   }
 
   private mapToChannelResponse(channel: Channel): ChannelResponse {

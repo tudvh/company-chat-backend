@@ -1,3 +1,5 @@
+import { getEnv } from '../helpers'
+
 export const IMAGE_FORMAT = {
   CHANNEL_THUMBNAIL: 'webp',
 }
@@ -7,7 +9,7 @@ export const IMAGE_SIZE = {
 }
 
 export const FOLDER_PATH = {
-  CHANNEL_THUMBNAIL: 'company-chat/images/channel-thumbnails',
+  CHANNEL_THUMBNAIL: `${getEnv('CLOUDINARY_ROOT_FOLDER')}/images/channel-thumbnails`,
 }
 
 export const URL_EXPIRATION = {
