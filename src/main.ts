@@ -34,8 +34,8 @@ async function bootstrap() {
 
   // Configure Swagger for API documentation.
   const swaggerOptions = new DocumentBuilder()
-    .setTitle('API Documentation')
-    .setDescription('The API description')
+    .setTitle('Company Chat API')
+    .setDescription('API documentation for the Company Chat application')
     .setVersion('1.0')
     .addBearerAuth()
     .build()
@@ -53,7 +53,7 @@ async function bootstrap() {
     new ValidationPipe({
       errorHttpStatusCode: HttpStatus.BAD_REQUEST,
       transform: true,
-      forbidNonWhitelisted: true,
+      whitelist: true,
     }),
   )
 

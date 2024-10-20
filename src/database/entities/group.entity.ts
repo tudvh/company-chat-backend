@@ -13,8 +13,11 @@ export class Group extends BaseEntity {
   @Column({ type: 'uuid', name: 'channel_id' })
   channelId: string
 
+  @Column({ type: 'varchar', length: 100, name: 'name' })
+  name: string
+
   @OneToMany(() => Room, room => room.group)
-  rooms: Room
+  rooms: Room[]
 
   @ManyToOne(() => Channel, channel => channel.groups)
   @JoinColumn({ name: 'channel_id' })

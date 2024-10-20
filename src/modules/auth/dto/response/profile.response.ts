@@ -8,11 +8,7 @@ export class ProfileResponse {
 
   @ApiProperty()
   @Expose()
-  firstName: string
-
-  @ApiProperty()
-  @Expose()
-  lastName: string
+  fullName: string
 
   @ApiProperty()
   @Expose()

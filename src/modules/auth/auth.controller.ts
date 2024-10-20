@@ -6,7 +6,7 @@ import { AuthService } from './auth.service'
 import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import { AccessTokenResponse, LoginResponse, ProfileResponse } from './dto/response'
 
-@Controller('/auth')
+@Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -31,10 +31,10 @@ export class AuthController {
 
   @Post('/profile')
   @HttpCode(HttpStatus.OK)
-  @Auth()
   @ApiOkResponse({ type: ProfileResponse })
+  @Auth()
   public async getProfile(@Req() request): Promise<ProfileResponse> {
-    const result = await this.authService.getProfile(request.userId)
+    const result = await this.authService.getProfile(request.user)
     return result
   }
 
