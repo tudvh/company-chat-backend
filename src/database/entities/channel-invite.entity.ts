@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 import { BaseEntity } from './base.entity'
 import { Channel } from './channel.entity'
@@ -15,5 +15,6 @@ export class ChannelInvite extends BaseEntity {
   expiresTime: string
 
   @ManyToOne(() => Channel, channel => channel.invites)
+  @JoinColumn({ name: 'channel_id' })
   channel: Channel
 }

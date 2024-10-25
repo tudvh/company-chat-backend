@@ -17,7 +17,7 @@ import { Auth } from '@/common/decorators'
 import { UploadUtil } from '@/common/utils'
 import { ChannelService } from './channel.service'
 import { CreateChannelRequest } from './dto/request'
-import { ChannelDetailResponse, ChannelResponse } from './dto/response'
+import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Controller('channels')
 @ApiTags('Channel')
@@ -59,5 +59,21 @@ export class ChannelController {
     @Param('channelId') channelId: string,
   ): Promise<ChannelDetailResponse> {
     return this.channelService.getJointedChannelDetail(request.user.id, channelId)
+  }
+
+  @Get('/invite/:channelId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: ChannelInviteResponse })
+  @Auth()
+  async getKeyInvite(@Param('channelId') channelId: string): Promise<ChannelInviteResponse> {
+    return this.channelService.getKeyInvite(channelId)
+  }
+
+  @Post('/join/:code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: Boolean })
+  @Auth()
+  async join(@Req() request, @Param('code') code: string): Promise<Boolean> {
+    return this.channelService.join(request.user.id, code)
   }
 }
