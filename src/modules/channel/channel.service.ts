@@ -94,12 +94,11 @@ export class ChannelService {
     return this.mapToChannelDetailResponse(createdChannel)
   }
 
-  public async getMyChannels(userId: string): Promise<ChannelResponse[]> {
-    const channels = await this.channelRepository.find({
+  public async getJointedChannels(userId: string): Promise<ChannelResponse[]> {
+    const jointedChannels = await this.channelRepository.find({
       where: {
         channelUsers: {
           userId,
-          isCreator: true,
         },
       },
       order: {
@@ -108,19 +107,18 @@ export class ChannelService {
       relations: ['channelUsers'],
     })
 
-    return channels.map(channel => this.mapToChannelResponse(channel))
+    return jointedChannels.map(channel => this.mapToChannelResponse(channel))
   }
 
-  public async getMyChannelDetail(
+  public async getJointedChannelDetail(
     userId: string,
     channelId: string,
   ): Promise<ChannelDetailResponse> {
-    const channel = await this.channelRepository.findOneOrFail({
+    const jointedChannel = await this.channelRepository.findOneOrFail({
       where: {
         id: channelId,
         channelUsers: {
           userId,
-          isCreator: true,
         },
       },
       relations: ['groups.rooms'],
@@ -134,7 +132,7 @@ export class ChannelService {
       },
     })
 
-    return this.mapToChannelDetailResponse(channel)
+    return this.mapToChannelDetailResponse(jointedChannel)
   }
 
   private async processAndUploadThumbnail(
