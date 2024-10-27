@@ -42,22 +42,22 @@ export class ChannelController {
     return result
   }
 
-  @Get('/jointed')
+  @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: [ChannelResponse] })
   @Auth()
-  async getJointedChannels(@Req() request): Promise<ChannelResponse[]> {
-    return this.channelService.getJointedChannels(request.user.id)
+  async getChannels(@Req() request): Promise<ChannelResponse[]> {
+    return this.channelService.getChannels(request.user.id)
   }
 
-  @Get('/jointed/:channelId')
+  @Get(':channelId')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: ChannelDetailResponse })
   @Auth()
-  async getJointedChannelDetail(
+  async getChannelDetail(
     @Req() request,
     @Param('channelId') channelId: string,
   ): Promise<ChannelDetailResponse> {
-    return this.channelService.getJointedChannelDetail(request.user.id, channelId)
+    return this.channelService.getChannelDetail(request.user.id, channelId)
   }
 }

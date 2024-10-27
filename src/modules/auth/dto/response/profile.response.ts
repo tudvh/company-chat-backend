@@ -24,10 +24,6 @@ export class ProfileResponse {
 
   @ApiProperty()
   @Expose()
-  avatarPublicId: string
-
-  @ApiProperty()
-  @Expose()
   avatarUrl: string
 
   @ApiProperty()

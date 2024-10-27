@@ -85,17 +85,18 @@ export class ChannelService {
         chatGroup.rooms = [chatRoom]
         callGroup.rooms = [callRoom]
         newChannel.groups = [chatGroup, callGroup]
+        newChannel.channelUsers = [channelUserAssociation]
 
         return newChannel
       },
     )
 
     // Return the created channel response with the thumbnail URL if available
-    return this.mapToChannelDetailResponse(createdChannel)
+    return this.mapToChannelDetailResponse(creatorUserId, createdChannel)
   }
 
-  public async getJointedChannels(userId: string): Promise<ChannelResponse[]> {
-    const jointedChannels = await this.channelRepository.find({
+  public async getChannels(userId: string): Promise<ChannelResponse[]> {
+    const channels = await this.channelRepository.find({
       where: {
         channelUsers: {
           userId,
@@ -107,21 +108,18 @@ export class ChannelService {
       relations: ['channelUsers'],
     })
 
-    return jointedChannels.map(channel => this.mapToChannelResponse(channel))
+    return channels.map(channel => this.mapToChannelResponse(userId, channel))
   }
 
-  public async getJointedChannelDetail(
-    userId: string,
-    channelId: string,
-  ): Promise<ChannelDetailResponse> {
-    const jointedChannel = await this.channelRepository.findOneOrFail({
+  public async getChannelDetail(userId: string, channelId: string): Promise<ChannelDetailResponse> {
+    const channel = await this.channelRepository.findOneOrFail({
       where: {
         id: channelId,
         channelUsers: {
           userId,
         },
       },
-      relations: ['groups.rooms'],
+      relations: ['groups.rooms', 'channelUsers'],
       order: {
         groups: {
           createdAt: 'ASC',
@@ -132,7 +130,7 @@ export class ChannelService {
       },
     })
 
-    return this.mapToChannelDetailResponse(jointedChannel)
+    return this.mapToChannelDetailResponse(userId, channel)
   }
 
   private async processAndUploadThumbnail(
@@ -161,12 +159,13 @@ export class ChannelService {
     await transactionManager.save(newChannel)
   }
 
-  private mapToChannelResponse(channel: Channel): ChannelResponse {
+  private mapToChannelResponse(userId: string, channel: Channel): ChannelResponse {
     return plainToInstance(
       ChannelResponse,
       {
         ...channel,
         thumbnailUrl: this.generateChannelThumbnailUrl(channel.thumbnailPublicId),
+        isCreator: this.isUserChannelCreator(userId, channel),
       },
       {
         excludeExtraneousValues: true,
@@ -174,12 +173,13 @@ export class ChannelService {
     )
   }
 
-  private mapToChannelDetailResponse(channel: Channel): ChannelDetailResponse {
+  private mapToChannelDetailResponse(userId: string, channel: Channel): ChannelDetailResponse {
     return plainToInstance(
       ChannelDetailResponse,
       {
         ...channel,
         thumbnailUrl: this.generateChannelThumbnailUrl(channel.thumbnailPublicId),
+        isCreator: this.isUserChannelCreator(userId, channel),
       },
       {
         excludeExtraneousValues: true,
@@ -187,7 +187,11 @@ export class ChannelService {
     )
   }
 
-  private generateChannelThumbnailUrl(thumbnailPublicId: string): string {
+  private isUserChannelCreator(userId: string, channel: Channel): boolean {
+    return channel.channelUsers.find(user => user.userId === userId)?.isCreator ?? false
+  }
+
+  private generateChannelThumbnailUrl(thumbnailPublicId: string): string | null {
     if (!thumbnailPublicId) {
       return null
     }

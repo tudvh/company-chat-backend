@@ -4,7 +4,12 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { Auth } from '@/common/decorators'
 import { AuthService } from './auth.service'
 import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
-import { AccessTokenResponse, LoginResponse, ProfileResponse } from './dto/response'
+import {
+  AccessTokenResponse,
+  AuthTokenResponse,
+  LoginResponse,
+  ProfileResponse,
+} from './dto/response'
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -43,7 +48,7 @@ export class AuthController {
   @ApiOkResponse({ type: AccessTokenResponse })
   public async refreshAccessToken(
     @Body() refreshAccessTokenRequest: RefreshAccessTokenRequest,
-  ): Promise<AccessTokenResponse> {
+  ): Promise<AuthTokenResponse> {
     const result = await this.authService.refreshAccessToken(refreshAccessTokenRequest)
     return result
   }
