@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -8,9 +8,11 @@ import { Repository } from 'typeorm'
 
 import { BcryptUtil } from '@/common/utils'
 import { User } from '@/database/entities'
+import { UserService } from '../user/user.service'
 import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import {
   AccessTokenResponse,
+  AuthTokenResponse,
   LoginResponse,
   ProfileResponse,
   RefreshTokenResponse,
@@ -21,6 +23,7 @@ export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly userService: UserService,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
@@ -31,24 +34,15 @@ export class AuthService {
       email,
     })
     if (!user) {
-      throw new BadRequestException('Email or password is incorrect')
+      throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
     }
 
-    // compare password
     const isPasswordValid = await BcryptUtil.validatePassword(password, user.password)
     if (!isPasswordValid) {
-      throw new BadRequestException('Email or password is incorrect')
+      throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
     }
 
-    const accessToken = await this.createAccessToken(user)
-    const refreshToken = await this.createRefreshToken(user)
-    return {
-      ...accessToken,
-      ...refreshToken,
-      userProfile: plainToInstance(ProfileResponse, user, {
-        excludeExtraneousValues: true,
-      }),
-    }
+    return this.buildLoginResponse(user)
   }
 
   public async authWithGoogle(
@@ -59,7 +53,6 @@ export class AuthService {
         Authorization: `Bearer ${authWithGoogleRequest.accessToken}`,
       },
     })
-
     const { sub: googleId, name: fullName, picture: avatarUrl, email } = googleUserResponse.data
 
     let user = await this.userRepository.findOneBy({
@@ -76,26 +69,16 @@ export class AuthService {
       await this.userRepository.save(user)
     }
 
-    const accessToken = await this.createAccessToken(user)
-    const refreshToken = await this.createRefreshToken(user)
-    return {
-      ...accessToken,
-      ...refreshToken,
-      userProfile: plainToInstance(ProfileResponse, user, {
-        excludeExtraneousValues: true,
-      }),
-    }
+    return this.buildLoginResponse(user)
   }
 
   public async getProfile(user: User): Promise<ProfileResponse> {
-    return plainToInstance(ProfileResponse, user, {
-      excludeExtraneousValues: true,
-    })
+    return this.transformToProfileResponse(user)
   }
 
   public async refreshAccessToken(
     refreshAccessTokenRequest: RefreshAccessTokenRequest,
-  ): Promise<AccessTokenResponse> {
+  ): Promise<AuthTokenResponse> {
     const { userId } = this.jwtService.verify(refreshAccessTokenRequest.refreshToken, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
     })
@@ -104,14 +87,27 @@ export class AuthService {
       id: userId,
     })
     if (!user) {
-      throw new InternalServerErrorException('User not found')
+      throw new UnauthorizedException('Người dùng không tồn tại.')
     }
 
-    const accessToken = await this.createAccessToken(user)
-    return accessToken
+    return this.buildAuthTokenResponse(user)
   }
 
-  private async createAccessToken(user: User): Promise<AccessTokenResponse> {
+  private buildLoginResponse(user: User): LoginResponse {
+    return {
+      ...this.buildAuthTokenResponse(user),
+      userProfile: this.transformToProfileResponse(user),
+    }
+  }
+
+  private buildAuthTokenResponse(user: User): AuthTokenResponse {
+    return {
+      ...this.generateAccessToken(user),
+      ...this.generateRefreshToken(user),
+    }
+  }
+
+  private generateAccessToken(user: User): AccessTokenResponse {
     const payload = { userId: user.id }
     const accessToken = this.jwtService.sign(payload)
     return {
@@ -120,7 +116,7 @@ export class AuthService {
     }
   }
 
-  private async createRefreshToken(user: User): Promise<RefreshTokenResponse> {
+  private generateRefreshToken(user: User): RefreshTokenResponse {
     const payload = { userId: user.id }
     const refreshToken = this.jwtService.sign(payload, {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
@@ -130,5 +126,18 @@ export class AuthService {
       refreshToken,
       refreshTokenExpiresIn: parseInt(this.configService.get('JWT_REFRESH_TOKEN_EXPIRES_IN')),
     }
+  }
+
+  private transformToProfileResponse(user: User): ProfileResponse {
+    return plainToInstance(
+      ProfileResponse,
+      {
+        ...user,
+        avatarUrl: this.userService.getAvatarUrl(user),
+      },
+      {
+        excludeExtraneousValues: true,
+      },
+    )
   }
 }

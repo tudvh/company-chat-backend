@@ -3,7 +3,6 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { BaseEntity } from './base.entity'
 import { Channel } from './channel.entity'
 import { Room } from './room.entity'
-import { User } from './user.entity'
 
 @Entity({ name: 'groups' })
 export class Group extends BaseEntity {
@@ -21,5 +20,5 @@ export class Group extends BaseEntity {
 
   @ManyToOne(() => Channel, channel => channel.groups)
   @JoinColumn({ name: 'channel_id' })
-  channel: User
+  channel: Channel
 }
