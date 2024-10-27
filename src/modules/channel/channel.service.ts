@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { plainToInstance } from 'class-transformer'
 import { UploadApiOptions } from 'cloudinary'
@@ -17,12 +17,16 @@ import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
 import { CreateChannelRequest } from './dto/request'
-import { ChannelDetailResponse, ChannelResponse } from './dto/response'
+import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
+import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 
 @Injectable()
 export class ChannelService {
   constructor(
     @InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
+    @InjectRepository(ChannelInvite)
+    private readonly channelInviteRepository: Repository<ChannelInvite>,
+    @InjectRepository(ChannelUser) private readonly channelUserRepository: Repository<ChannelUser>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -133,6 +137,41 @@ export class ChannelService {
     })
 
     return this.mapToChannelDetailResponse(jointedChannel)
+  }
+
+  public async getKeyInvite(channelId: string): Promise<ChannelInviteResponse> {
+    const channel = await this.channelRepository.findOneOrFail({
+      where: {
+        id: channelId,
+      },
+    })
+
+    const channelInvite = this.channelInviteRepository.create({
+      channelId: channelId,
+      expiresTime: new Date().toISOString(),
+    })
+
+    await this.channelInviteRepository.save(channelInvite)
+    return plainToInstance(ChannelInviteResponse, channelInvite, { excludeExtraneousValues: true })
+  }
+
+  public async join(userId: string, code: string): Promise<ChannelResponse> {
+    const channelInvite = await this.channelInviteRepository.findOneOrFail({
+      where: {
+        id: code,
+      },
+      relations: ['channel.channelUsers'],
+    })
+    if (channelInvite.channel.channelUsers.find(user => user.userId === userId)) {
+      throw new BadRequestException('You already joined this channel')
+    }
+    const channelUser = this.channelUserRepository.create({
+      channelId: channelInvite.channelId,
+      userId: userId,
+      isCreator: false,
+    })
+    await this.channelUserRepository.save(channelUser)
+    return this.mapToChannelResponse(channelInvite.channel)
   }
 
   private async processAndUploadThumbnail(
