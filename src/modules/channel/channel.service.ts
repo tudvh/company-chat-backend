@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { plainToInstance } from 'class-transformer'
 import { UploadApiOptions } from 'cloudinary'
@@ -152,28 +152,26 @@ export class ChannelService {
     })
 
     await this.channelInviteRepository.save(channelInvite)
-    return plainToInstance(ChannelInviteResponse, channel, { excludeExtraneousValues: true })
+    return plainToInstance(ChannelInviteResponse, channelInvite, { excludeExtraneousValues: true })
   }
 
-  public async join(userId: string, code: string): Promise<Boolean> {
-    console.log(code)
-    const channel = await this.channelInviteRepository.findOneOrFail({
+  public async join(userId: string, code: string): Promise<ChannelResponse> {
+    const channelInvite = await this.channelInviteRepository.findOneOrFail({
       where: {
         id: code,
       },
       relations: ['channel.channelUsers'],
     })
-    if (channel.channel.channelUsers.find(user => user.userId === userId)) {
-      return false
+    if (channelInvite.channel.channelUsers.find(user => user.userId === userId)) {
+      throw new BadRequestException('You already joined this channel')
     }
     const channelUser = this.channelUserRepository.create({
-      channelId: channel.channelId,
+      channelId: channelInvite.channelId,
       userId: userId,
       isCreator: false,
     })
-
     await this.channelUserRepository.save(channelUser)
-    return true
+    return this.mapToChannelResponse(channelInvite.channel)
   }
 
   private async processAndUploadThumbnail(

@@ -73,7 +73,7 @@ export class ChannelController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: Boolean })
   @Auth()
-  async join(@Req() request, @Param('code') code: string): Promise<Boolean> {
+  async join(@Req() request, @Param('code') code: string): Promise<ChannelResponse> {
     return this.channelService.join(request.user.id, code)
   }
 }
