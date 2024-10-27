@@ -15,10 +15,10 @@ import {
 import { RoomTypeEnum } from '@/common/enums'
 import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
+import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
 import { CreateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
-import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 
 @Injectable()
 export class ChannelService {
@@ -169,7 +169,7 @@ export class ChannelService {
       isCreator: false,
     })
     await this.channelUserRepository.save(channelUser)
-    return this.mapToChannelResponse(channelInvite.channel)
+    return this.mapToChannelResponse(userId, channelInvite.channel)
   }
 
   private async processAndUploadThumbnail(
