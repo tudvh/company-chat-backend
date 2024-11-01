@@ -15,6 +15,9 @@ export class Group extends BaseEntity {
   @Column({ type: 'varchar', length: 100, name: 'name' })
   name: string
 
+  @Column({ type: 'boolean', name: 'is_private' })
+  isPrivate: boolean
+
   @OneToMany(() => Room, room => room.group)
   rooms: Room[]
 

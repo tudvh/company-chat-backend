@@ -1,7 +1,8 @@
 import { Auth } from '@/common/decorators'
-import { Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common'
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common'
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
+import { CreateRoomRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 import { RoomService } from './room.service'
 
@@ -28,6 +29,15 @@ export class RoomController {
     @Req() request,
   ): Promise<CallInfoResponse> {
     const result = await this.roomService.getCallInfo(request.user, roomId)
+    return result
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: RoomResponse })
+  @Auth()
+  public async createRoom(@Body() createRoomRequest: CreateRoomRequest): Promise<RoomResponse> {
+    const result = await this.roomService.createRoom(createRoomRequest)
     return result
   }
 }

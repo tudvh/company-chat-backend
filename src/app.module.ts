@@ -6,6 +6,7 @@ import { join } from 'path'
 import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { ChannelModule } from './modules/channel/channel.module'
+import { GroupModule } from './modules/group/group.module'
 import { HealthCheckModule } from './modules/health-check/health-check.module'
 import { PusherModule } from './modules/pusher/pusher.module'
 import { RoomModule } from './modules/room/room.module'
@@ -27,6 +28,7 @@ import { TestModule } from './modules/test/test.module'
     TestModule,
     AuthModule,
     ChannelModule,
+    GroupModule,
     RoomModule,
   ],
 })

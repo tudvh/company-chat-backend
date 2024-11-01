@@ -11,12 +11,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { Auth } from '@/common/decorators'
 import { UploadUtil } from '@/common/utils'
 import { ChannelService } from './channel.service'
-import { CreateChannelRequest } from './dto/request'
+import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Controller('channels')
@@ -26,7 +26,7 @@ export class ChannelController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOkResponse({ type: ChannelResponse })
+  @ApiCreatedResponse({ type: ChannelResponse })
   @UseInterceptors(FileInterceptor('thumbnailFile', { fileFilter: UploadUtil.imageFileFilter() }))
   @Auth()
   async createChannel(
@@ -61,19 +61,30 @@ export class ChannelController {
     return this.channelService.getChannelDetail(request.user.id, channelId)
   }
 
-  @Get('/invite/:channelId')
+  @Get(':channelId/invite')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: ChannelInviteResponse })
   @Auth()
-  async getKeyInvite(@Param('channelId') channelId: string): Promise<ChannelInviteResponse> {
-    return this.channelService.getKeyInvite(channelId)
+  async getInviteCode(@Param('channelId') channelId: string): Promise<ChannelInviteResponse> {
+    return this.channelService.getInviteCode(channelId)
   }
 
-  @Post('/join/:code')
+  @Post('/join')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: Boolean })
   @Auth()
-  async join(@Req() request, @Param('code') code: string): Promise<ChannelResponse> {
-    return this.channelService.join(request.user.id, code)
+  async joinChannel(
+    @Req() request,
+    @Body() joinChannelRequest: JoinChannelRequest,
+  ): Promise<ChannelResponse> {
+    return this.channelService.joinChannel(request.user.id, joinChannelRequest)
+  }
+
+  @Post(':channelId/leave')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse()
+  @Auth()
+  async leaveChannel(@Req() request, @Param('channelId') channelId: string): Promise<void> {
+    return this.channelService.leaveChannel(request.user.id, channelId)
   }
 }
