@@ -5,5 +5,5 @@ export class ChannelInviteResponse {
   @ApiProperty()
   @Expose()
   @Transform(({ obj }) => obj.id)
-  inviteString: string
+  code: string
 }

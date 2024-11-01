@@ -17,7 +17,7 @@ import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
 import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
-import { CreateChannelRequest } from './dto/request'
+import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Injectable()
@@ -56,15 +56,18 @@ export class ChannelService {
         await transactionManager.save(channelUserAssociation)
 
         // Create and save default chat and call groups
+        const now = new Date()
         const chatGroup = transactionManager.create(Group, {
           name: GROUP_NAME_DEFAULT.CHAT,
           channelId: newChannel.id,
-          createdAt: new Date().toISOString(),
+          isPrivate: false,
+          createdAt: now.toISOString(),
         })
         const callGroup = transactionManager.create(Group, {
           name: GROUP_NAME_DEFAULT.CALL,
           channelId: newChannel.id,
-          createdAt: new Date(new Date().getTime() + 1000).toISOString(),
+          isPrivate: false,
+          createdAt: new Date(now.getTime() + 1000).toISOString(),
         })
         await transactionManager.save([chatGroup, callGroup])
 
@@ -74,14 +77,14 @@ export class ChannelService {
           type: RoomTypeEnum.Chat,
           groupId: chatGroup.id,
           isPrivate: false,
-          createdAt: new Date().toISOString(),
+          createdAt: new Date(now.getTime() + 2000).toISOString(),
         })
         const callRoom = transactionManager.create(Room, {
           name: ROOM_NAME_DEFAULT,
           type: RoomTypeEnum.Call,
           groupId: callGroup.id,
           isPrivate: false,
-          createdAt: new Date(new Date().getTime() + 1000).toISOString(),
+          createdAt: new Date(now.getTime() + 3000).toISOString(),
         })
         await transactionManager.save([chatRoom, callRoom])
 
@@ -137,39 +140,74 @@ export class ChannelService {
     return this.mapToChannelDetailResponse(userId, channel)
   }
 
-  public async getKeyInvite(channelId: string): Promise<ChannelInviteResponse> {
-    const channel = await this.channelRepository.findOneOrFail({
-      where: {
-        id: channelId,
-      },
+  public async getInviteCode(channelId: string): Promise<ChannelInviteResponse> {
+    const channel = await this.channelRepository.findOneBy({
+      id: channelId,
     })
+    if (!channel) {
+      throw new BadRequestException('Channel not found')
+    }
 
-    const channelInvite = this.channelInviteRepository.create({
+    let channelInvite = await this.channelInviteRepository.findOneBy({
       channelId: channelId,
-      expiresTime: new Date().toISOString(),
     })
+    if (!channelInvite) {
+      channelInvite = this.channelInviteRepository.create({
+        channelId: channelId,
+        expiresTime: new Date().toISOString(),
+      })
+      await this.channelInviteRepository.save(channelInvite)
+    }
 
-    await this.channelInviteRepository.save(channelInvite)
-    return plainToInstance(ChannelInviteResponse, channelInvite, { excludeExtraneousValues: true })
+    return plainToInstance(ChannelInviteResponse, channelInvite, {
+      excludeExtraneousValues: true,
+    })
   }
 
-  public async join(userId: string, code: string): Promise<ChannelResponse> {
-    const channelInvite = await this.channelInviteRepository.findOneOrFail({
+  public async joinChannel(
+    userId: string,
+    joinChannelRequest: JoinChannelRequest,
+  ): Promise<ChannelResponse> {
+    const channelInvite = await this.channelInviteRepository.findOne({
       where: {
-        id: code,
+        id: joinChannelRequest.code,
       },
       relations: ['channel.channelUsers'],
     })
-    if (channelInvite.channel.channelUsers.find(user => user.userId === userId)) {
-      throw new BadRequestException('You already joined this channel')
+    if (!channelInvite) {
+      throw new BadRequestException('Invalid code')
     }
+
+    const channel = channelInvite.channel
+    if (channel.channelUsers.some(user => user.userId === userId)) {
+      throw new BadRequestException('User already in channel')
+    }
+
     const channelUser = this.channelUserRepository.create({
       channelId: channelInvite.channelId,
       userId: userId,
       isCreator: false,
     })
     await this.channelUserRepository.save(channelUser)
+
+    channel.channelUsers.push(channelUser)
+
     return this.mapToChannelResponse(userId, channelInvite.channel)
+  }
+
+  public async leaveChannel(userId: string, channelId: string): Promise<void> {
+    const channelUser = await this.channelUserRepository.findOneBy({
+      userId,
+      channelId,
+    })
+    if (!channelUser) {
+      throw new BadRequestException('User not in channel')
+    }
+    if (channelUser.isCreator) {
+      throw new BadRequestException('Creator cannot leave channel')
+    }
+
+    await this.channelUserRepository.softDelete(channelUser)
   }
 
   private async processAndUploadThumbnail(

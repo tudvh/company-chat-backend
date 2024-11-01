@@ -12,5 +12,9 @@ export class GroupResponse {
 
   @ApiProperty()
   @Expose()
+  isPrivate: boolean
+
+  @ApiProperty()
+  @Expose()
   createdAt: string
 }

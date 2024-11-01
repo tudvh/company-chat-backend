@@ -8,8 +8,9 @@ import { Repository } from 'typeorm'
 import { RoomTypeEnum } from '@/common/enums'
 import { Room, User } from '@/database/entities'
 import { PusherService } from '../pusher/pusher.service'
-import { CallInfoResponse, RoomResponse } from './dto/response'
 import { UserService } from '../user/user.service'
+import { CreateRoomRequest } from './dto/request'
+import { CallInfoResponse, RoomResponse } from './dto/response'
 
 @Injectable()
 export class RoomService {
@@ -68,5 +69,14 @@ export class RoomService {
       channel: channelName,
       rtcToken,
     }
+  }
+
+  public async createRoom(createRoomRequest: CreateRoomRequest): Promise<RoomResponse> {
+    const room = this.roomRepository.create(createRoomRequest)
+    await this.roomRepository.save(room)
+
+    return plainToInstance(RoomResponse, room, {
+      excludeExtraneousValues: true,
+    })
   }
 }
