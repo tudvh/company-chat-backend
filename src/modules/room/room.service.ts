@@ -40,8 +40,8 @@ export class RoomService {
       throw new Error('Room type is not call')
     }
 
-    const appId = this.configService.get('AGORA_APP_ID')
-    const appCertificate = this.configService.get('AGORA_APP_CERTIFICATE')
+    const appId = this.configService.get<string>('AGORA_APP_ID')
+    const appCertificate = this.configService.get<string>('AGORA_APP_CERTIFICATE')
     const channelName = room.id
     const account = user.id
     const role = RtcRole.PUBLISHER
