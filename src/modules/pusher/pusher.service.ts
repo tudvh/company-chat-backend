@@ -16,7 +16,7 @@ export class PusherService {
     })
   }
 
-  async trigger(channel: string, event: string, data: any) {
+  async trigger(channel: string, event: string, data: any = null) {
     await this.pusher.trigger(channel, event, data)
   }
 }

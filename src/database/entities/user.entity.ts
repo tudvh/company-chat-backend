@@ -3,6 +3,7 @@ import { Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColum
 import { BaseEntity } from './base.entity'
 import { ChannelUser } from './channel-user.entity'
 import { Channel } from './channel.entity'
+import { Message } from './message.entity'
 import { Room } from './room.entity'
 
 @Entity({ name: 'users' })
@@ -45,6 +46,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => ChannelUser, channelUser => channelUser.user)
   channelUsers: ChannelUser[]
+
+  @OneToMany(() => Message, message => message.sender)
+  myMessages: Message[]
 
   @ManyToMany(() => Room, room => room.users)
   @JoinTable({

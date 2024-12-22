@@ -8,13 +8,13 @@ import { Repository } from 'typeorm'
 
 import { BcryptUtil } from '@/common/utils'
 import { User } from '@/database/entities'
+import { AuthProfileResponse } from '../user/dto/response'
 import { UserService } from '../user/user.service'
 import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import {
   AccessTokenResponse,
   AuthTokenResponse,
   LoginResponse,
-  ProfileResponse,
   RefreshTokenResponse,
 } from './dto/response'
 
@@ -72,7 +72,7 @@ export class AuthService {
     return this.buildLoginResponse(user)
   }
 
-  public async getProfile(user: User): Promise<ProfileResponse> {
+  public async getProfile(user: User): Promise<AuthProfileResponse> {
     return this.transformToProfileResponse(user)
   }
 
@@ -128,9 +128,9 @@ export class AuthService {
     }
   }
 
-  private transformToProfileResponse(user: User): ProfileResponse {
+  private transformToProfileResponse(user: User): AuthProfileResponse {
     return plainToInstance(
-      ProfileResponse,
+      AuthProfileResponse,
       {
         ...user,
         avatarUrl: this.userService.getAvatarUrl(user),

@@ -43,18 +43,18 @@ export class RoomService {
     const appId = this.configService.get<string>('AGORA_APP_ID')
     const appCertificate = this.configService.get<string>('AGORA_APP_CERTIFICATE')
     const channelName = room.id
-    const account = user.id
+    const uid = Math.floor(Math.random() * 21)
     const role = RtcRole.PUBLISHER
     const expirationTimeInSeconds = parseInt(this.configService.get('AGORA_CALL_TOKEN_EXPIRES_IN'))
     const currentTimestamp = Math.floor(Date.now() / 1000)
     const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds
 
     // Generate RTC token
-    const rtcToken = RtcTokenBuilder.buildTokenWithAccount(
+    const rtcToken = RtcTokenBuilder.buildTokenWithUid(
       appId,
       appCertificate,
       channelName,
-      account,
+      uid,
       role,
       privilegeExpiredTs,
     )
@@ -68,6 +68,7 @@ export class RoomService {
     return {
       channel: channelName,
       rtcToken,
+      uid,
     }
   }
 

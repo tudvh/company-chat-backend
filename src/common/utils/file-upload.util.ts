@@ -9,8 +9,29 @@ export class UploadUtil {
       callback: (error: Error | null, acceptFile: boolean) => void,
     ) => {
       if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-        callback(new BadRequestException('Only image files are allowed!'), false)
+        callback(new BadRequestException('Chỉ cho phép các tệp hình ảnh!'), false)
+        return
       }
+      callback(null, true)
+    }
+  }
+
+  static messageAttachmentFilter() {
+    return (
+      _: Express.Request,
+      file: Express.Multer.File,
+      callback: (error: Error | null, acceptFile: boolean) => void,
+    ) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/)) {
+        callback(new BadRequestException('Chỉ cho phép các tệp hình ảnh và tài liệu!'), false)
+        return
+      }
+      const maxSizeInBytes = 2 * 1024 * 1024
+      if (file.size > maxSizeInBytes) {
+        callback(new BadRequestException('Kích thước tệp không được vượt quá 2MB!'), false)
+        return
+      }
+
       callback(null, true)
     }
   }

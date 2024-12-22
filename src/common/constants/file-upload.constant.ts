@@ -10,6 +10,7 @@ export const IMAGE_SIZE = {
 
 export const FOLDER_PATH = {
   CHANNEL_THUMBNAIL: `${getEnv('CLOUDINARY_ROOT_FOLDER')}/images/channel-thumbnails`,
+  MESSAGE_ATTACHMENT: `${getEnv('CLOUDINARY_ROOT_FOLDER')}/files/message-attachments`,
 }
 
 export const URL_EXPIRATION = {

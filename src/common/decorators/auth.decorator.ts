@@ -7,6 +7,6 @@ export function Auth(): MethodDecorator {
   return applyDecorators(
     UseGuards(AppAuthGuard()),
     ApiBearerAuth(),
-    ApiUnauthorizedResponse({ description: 'Unauthorized ' }),
+    ApiUnauthorizedResponse({ description: 'Unauthorized' }),
   )
 }
