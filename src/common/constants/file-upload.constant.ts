@@ -16,4 +16,5 @@ export const FOLDER_PATH = {
 export const URL_EXPIRATION = {
   CHANNEL_THUMBNAIL: 60 * 60 * 24,
   USER_AVATAR: 60 * 60 * 24,
+  MESSAGE_ATTACHMENT: 60 * 60 * 24,
 }

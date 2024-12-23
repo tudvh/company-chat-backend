@@ -33,9 +33,13 @@ export class CloudinaryService {
     })
   }
 
-  public generateSignedImageUrl(publicId: string, expirationInSeconds: number): string {
+  public generateSignedUrl(
+    publicId: string,
+    expirationInSeconds: number,
+    resourceType: 'image' | 'video' | 'raw' = 'image',
+  ): string {
     const urlOptions = {
-      resource_type: 'image',
+      resource_type: resourceType,
       type: 'authenticated',
       sign_url: true,
       secure: true,

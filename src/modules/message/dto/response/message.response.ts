@@ -1,4 +1,4 @@
-import { Expose, plainToInstance, Transform } from 'class-transformer'
+import { Expose } from 'class-transformer'
 
 import { MessageProfileResponse } from '@/modules/user/dto/response'
 import { MessageAttachmentResponse } from './message-attachment.response'
@@ -14,11 +14,6 @@ export class MessageResponse {
   sender: MessageProfileResponse
 
   @Expose()
-  @Transform(({ obj }) => {
-    return plainToInstance(MessageAttachmentResponse, obj.attachments, {
-      excludeExtraneousValues: true,
-    })
-  })
   attachments: MessageAttachmentResponse[]
 
   @Expose()

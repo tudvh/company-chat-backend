@@ -9,4 +9,7 @@ export class MessageAttachmentResponse {
 
   @Expose()
   fileType: string
+
+  @Expose()
+  fileUrl: string
 }

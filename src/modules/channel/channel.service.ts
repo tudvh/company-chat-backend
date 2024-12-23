@@ -272,7 +272,7 @@ export class ChannelService {
     if (!thumbnailPublicId) {
       return null
     }
-    return this.cloudinaryService.generateSignedImageUrl(
+    return this.cloudinaryService.generateSignedUrl(
       thumbnailPublicId,
       URL_EXPIRATION.CHANNEL_THUMBNAIL,
     )

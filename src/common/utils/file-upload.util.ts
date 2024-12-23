@@ -31,7 +31,6 @@ export class UploadUtil {
         callback(new BadRequestException('Kích thước tệp không được vượt quá 2MB!'), false)
         return
       }
-
       callback(null, true)
     }
   }

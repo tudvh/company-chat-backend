@@ -5,7 +5,7 @@ import { UploadApiOptions } from 'cloudinary'
 import { Repository } from 'typeorm'
 import { v4 as uuidV4 } from 'uuid'
 
-import { FOLDER_PATH } from '@/common/constants'
+import { FOLDER_PATH, URL_EXPIRATION } from '@/common/constants'
 import { Message, MessageAttachment, Room, User } from '@/database/entities'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
 import { PusherService } from '../pusher/pusher.service'
@@ -76,13 +76,13 @@ export class MessageService {
         await transactionalEntityManager.save(attachmentEntities)
 
         await Promise.all(
-          attachmentFiles.map(async (attachmentFiles, index) => {
+          attachmentFiles.map(async (file, index) => {
             const attachmentOptions: UploadApiOptions = {
               resource_type: 'auto',
               type: 'authenticated',
               public_id: attachmentEntities[index].publicId,
             }
-            await this.cloudinaryService.uploadFile(attachmentFiles, attachmentOptions)
+            await this.cloudinaryService.uploadFile(file, attachmentOptions)
           }),
         )
 
@@ -108,6 +108,15 @@ export class MessageService {
           fullName: message.sender.fullName,
           avatarUrl: this.userService.getAvatarUrl(message.sender),
         },
+        attachments: message.attachments.map(attachment => ({
+          id: attachment.id,
+          fileName: attachment.fileName,
+          fileType: attachment.fileType,
+          fileUrl: this.cloudinaryService.generateSignedUrl(
+            attachment.publicId,
+            URL_EXPIRATION.MESSAGE_ATTACHMENT,
+          ),
+        })),
       },
       {
         excludeExtraneousValues: true,
