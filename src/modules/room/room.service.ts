@@ -80,4 +80,19 @@ export class RoomService {
       excludeExtraneousValues: true,
     })
   }
+
+  public async getAllFreeRoom(channelId: string): Promise<string[]> {
+    const rooms = await this.roomRepository.find({
+      where: {
+        type: RoomTypeEnum.Call,
+        group: {
+          channelId: channelId,
+        },
+      },
+      select: ['id'],
+      relations: ['group'],
+    })
+
+    return rooms.map((room) => room.id)
+  }
 }
