@@ -10,7 +10,7 @@ import { BcryptUtil } from '@/common/utils'
 import { User } from '@/database/entities'
 import { AuthProfileResponse } from '../user/dto/response'
 import { UserService } from '../user/user.service'
-import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
+import { AuthWithGoogleRequest, BotRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import {
   AccessTokenResponse,
   AuthTokenResponse,
@@ -39,6 +39,19 @@ export class AuthService {
 
     const isPasswordValid = await BcryptUtil.validatePassword(password, user.password)
     if (!isPasswordValid) {
+      throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
+    }
+
+    return this.buildLoginResponse(user)
+  }
+
+  public async getBotKey(loginRequest: BotRequest): Promise<LoginResponse> {
+    const { email } = loginRequest
+
+    const user = await this.userRepository.findOneBy({
+      email,
+    })
+    if (!user) {
       throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
     }
 

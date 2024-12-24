@@ -4,7 +4,7 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { Auth } from '@/common/decorators'
 import { AuthProfileResponse } from '../user/dto/response'
 import { AuthService } from './auth.service'
-import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
+import { AuthWithGoogleRequest, BotRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
 import { AccessTokenResponse, AuthTokenResponse, LoginResponse } from './dto/response'
 
 @Controller('auth')
@@ -17,6 +17,14 @@ export class AuthController {
   @ApiOkResponse({ type: LoginResponse })
   public async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
     const result = await this.authService.login(loginRequest)
+    return result
+  }
+
+  @Post('/getBotKey')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: LoginResponse })
+  public async getBotKey(@Body() loginRequest: BotRequest): Promise<LoginResponse> {
+    const result = await this.authService.getBotKey(loginRequest)
     return result
   }
 
