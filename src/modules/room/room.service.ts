@@ -8,17 +8,13 @@ import { Repository } from 'typeorm'
 import { RoomTypeEnum } from '@/common/enums'
 import { uuidToInt } from '@/common/helpers'
 import { Room, User } from '@/database/entities'
-import { PusherService } from '../pusher/pusher.service'
-import { UserService } from '../user/user.service'
-import { CreateRoomRequest, GetCallInfoRequest } from './dto/request'
+import { CreateRoomRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 
 @Injectable()
 export class RoomService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly pusherService: PusherService,
-    private readonly userService: UserService,
     @InjectRepository(Room) private readonly roomRepository: Repository<Room>,
   ) {}
 
@@ -32,12 +28,7 @@ export class RoomService {
     })
   }
 
-  public async getCallInfo(
-    user: User,
-    getCallInfoRequest: GetCallInfoRequest,
-  ): Promise<CallInfoResponse> {
-    const { roomId, socketId } = getCallInfoRequest
-
+  public async getCallInfo(user: User, roomId: string): Promise<CallInfoResponse> {
     const room = await this.roomRepository.findOneByOrFail({
       id: roomId,
     })
