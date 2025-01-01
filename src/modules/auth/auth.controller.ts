@@ -54,7 +54,7 @@ export class AuthController {
 
   @Post('/refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOkResponse({ type: AccessTokenResponse })
+  @ApiOkResponse({ type: AuthTokenResponse })
   public async refreshAccessToken(
     @Body() refreshAccessTokenRequest: RefreshAccessTokenRequest,
   ): Promise<AuthTokenResponse> {
