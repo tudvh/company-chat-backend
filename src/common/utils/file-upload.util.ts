@@ -22,15 +22,40 @@ export class UploadUtil {
       file: Express.Multer.File,
       callback: (error: Error | null, acceptFile: boolean) => void,
     ) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/)) {
-        callback(new BadRequestException('Chỉ cho phép các tệp hình ảnh và tài liệu!'), false)
-        return
+      const allowedMimeTypes = [
+        'image/jpg',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain',
+      ]
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        return callback(
+          new BadRequestException(
+            `Loại tệp "${file.mimetype}" không được hỗ trợ! Chỉ chấp nhận các tệp hình ảnh và tài liệu.`,
+          ),
+          false,
+        )
       }
+
       const maxSizeInBytes = 2 * 1024 * 1024
       if (file.size > maxSizeInBytes) {
-        callback(new BadRequestException('Kích thước tệp không được vượt quá 2MB!'), false)
-        return
+        return callback(
+          new BadRequestException(
+            `Kích thước tệp vượt quá 2MB! Kích thước hiện tại: ${(file.size / (1024 * 1024)).toFixed(2)}MB.`,
+          ),
+          false,
+        )
       }
+
       callback(null, true)
     }
   }

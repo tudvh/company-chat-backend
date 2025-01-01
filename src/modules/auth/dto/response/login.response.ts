@@ -6,4 +6,7 @@ import { AuthTokenResponse } from './auth-token.response'
 export class LoginResponse extends AuthTokenResponse {
   @ApiProperty()
   userProfile: AuthProfileResponse
+
+  @ApiProperty()
+  joinedChannelIds: string[]
 }

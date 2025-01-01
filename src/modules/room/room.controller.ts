@@ -1,8 +1,18 @@
 import { Auth } from '@/common/decorators'
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, Req } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common'
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
-import { CreateRoomRequest } from './dto/request'
+import { CreateRoomRequest, GetCallInfoRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 import { RoomService } from './room.service'
 
@@ -14,9 +24,7 @@ export class RoomController {
   @Get('get-all-free-room')
   @HttpCode(HttpStatus.OK)
   @Auth()
-  public async getAllFreeRoom(
-    @Query('channelId') channelId: string,
-  ): Promise<string[]> {
+  public async getAllFreeRoom(@Query('channelId') channelId: string): Promise<string[]> {
     const result = await this.roomService.getAllFreeRoom(channelId)
     return result
   }
@@ -30,15 +38,15 @@ export class RoomController {
     return result
   }
 
-  @Post(':roomId/call-info')
+  @Post('call-info')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: CallInfoResponse })
   @Auth()
   public async getCallInfo(
-    @Param('roomId') roomId: string,
     @Req() request,
+    @Body() getCallInfoRequest: GetCallInfoRequest,
   ): Promise<CallInfoResponse> {
-    const result = await this.roomService.getCallInfo(request.user, roomId)
+    const result = await this.roomService.getCallInfo(request.user, getCallInfoRequest)
     return result
   }
 

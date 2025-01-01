@@ -11,7 +11,6 @@ import { HealthCheckModule } from './modules/health-check/health-check.module'
 import { MessageModule } from './modules/message/message.module'
 import { PusherModule } from './modules/pusher/pusher.module'
 import { RoomModule } from './modules/room/room.module'
-import { TestModule } from './modules/test/test.module'
 
 @Module({
   imports: [
@@ -26,12 +25,12 @@ import { TestModule } from './modules/test/test.module'
     DatabaseModule,
     PusherModule,
     HealthCheckModule,
-    TestModule,
     AuthModule,
     ChannelModule,
     GroupModule,
     RoomModule,
     MessageModule,
+    PusherModule,
   ],
 })
 export class AppModule {}

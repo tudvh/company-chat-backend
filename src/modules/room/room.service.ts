@@ -6,10 +6,11 @@ import { plainToInstance } from 'class-transformer'
 import { Repository } from 'typeorm'
 
 import { RoomTypeEnum } from '@/common/enums'
+import { uuidToInt } from '@/common/helpers'
 import { Room, User } from '@/database/entities'
 import { PusherService } from '../pusher/pusher.service'
 import { UserService } from '../user/user.service'
-import { CreateRoomRequest } from './dto/request'
+import { CreateRoomRequest, GetCallInfoRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 
 @Injectable()
@@ -31,7 +32,12 @@ export class RoomService {
     })
   }
 
-  public async getCallInfo(user: User, roomId: string): Promise<CallInfoResponse> {
+  public async getCallInfo(
+    user: User,
+    getCallInfoRequest: GetCallInfoRequest,
+  ): Promise<CallInfoResponse> {
+    const { roomId, socketId } = getCallInfoRequest
+
     const room = await this.roomRepository.findOneByOrFail({
       id: roomId,
     })
@@ -42,8 +48,8 @@ export class RoomService {
 
     const appId = this.configService.get<string>('AGORA_APP_ID')
     const appCertificate = this.configService.get<string>('AGORA_APP_CERTIFICATE')
-    const channelName = room.id
-    const uid = Math.floor(Math.random() * 21)
+    const channelName = roomId
+    const uid = uuidToInt(user.id)
     const role = RtcRole.PUBLISHER
     const expirationTimeInSeconds = parseInt(this.configService.get('AGORA_CALL_TOKEN_EXPIRES_IN'))
     const currentTimestamp = Math.floor(Date.now() / 1000)
@@ -58,12 +64,6 @@ export class RoomService {
       role,
       privilegeExpiredTs,
     )
-
-    await this.pusherService.trigger(channelName, 'joined-channel', {
-      id: user.id,
-      fullName: user.fullName,
-      avatarUrl: this.userService.getAvatarUrl(user),
-    })
 
     return {
       channel: channelName,
@@ -93,6 +93,6 @@ export class RoomService {
       relations: ['group'],
     })
 
-    return rooms.map((room) => room.id)
+    return rooms.map(room => room.id)
   }
 }

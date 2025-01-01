@@ -46,8 +46,11 @@ export class MessageService {
       throw new BadRequestException('Content or attachment is required')
     }
 
-    const room = this.roomRepository.findOneBy({
-      id: sendMessageRequest.roomId,
+    const room = await this.roomRepository.findOne({
+      where: {
+        id: sendMessageRequest.roomId,
+      },
+      relations: ['group'],
     })
 
     if (!room) {
@@ -90,7 +93,7 @@ export class MessageService {
       }
       message.sender = sender
 
-      const messageResponse = this.mapSingleMessageToResponse(message)
+      const messageResponse = this.mapSingleMessageToResponse(message, room.group.channelId)
 
       await this.pusherService.trigger(sendMessageRequest.roomId, 'new-message', messageResponse)
 
@@ -98,25 +101,30 @@ export class MessageService {
     })
   }
 
-  private mapSingleMessageToResponse(message: Message): MessageResponse {
+  private mapSingleMessageToResponse(message: Message, channelId?: string): MessageResponse {
     return plainToInstance(
       MessageResponse,
       {
         ...message,
+        channelId,
         sender: {
           id: message.sender.id,
           fullName: message.sender.fullName,
           avatarUrl: this.userService.getAvatarUrl(message.sender),
         },
-        attachments: message.attachments.map(attachment => ({
-          id: attachment.id,
-          fileName: attachment.fileName,
-          fileType: attachment.fileType,
-          fileUrl: this.cloudinaryService.generateSignedUrl(
-            attachment.publicId,
-            URL_EXPIRATION.MESSAGE_ATTACHMENT,
-          ),
-        })),
+        attachments: message.attachments?.map(attachment => {
+          const resourceType = attachment.fileType.includes('word') ? 'raw' : 'image'
+          return {
+            id: attachment.id,
+            fileName: attachment.fileName,
+            fileType: attachment.fileType,
+            fileUrl: this.cloudinaryService.generateSignedUrl(
+              attachment.publicId,
+              URL_EXPIRATION.MESSAGE_ATTACHMENT,
+              resourceType,
+            ),
+          }
+        }),
       },
       {
         excludeExtraneousValues: true,

@@ -8,5 +8,5 @@ export class CallInfoResponse {
   rtcToken: string
 
   @ApiProperty()
-  uid: number
+  uid: string | number
 }

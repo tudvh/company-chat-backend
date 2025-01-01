@@ -63,4 +63,8 @@ export class User extends BaseEntity {
       .filter(channelUser => channelUser.isCreator)
       .map(channelUser => channelUser.channel)
   }
+
+  get joinedChannels(): Channel[] {
+    return this.channelUsers.map(channelUser => channelUser.channel)
+  }
 }
