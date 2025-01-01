@@ -95,6 +95,7 @@ export class AuthService {
         password: await BcryptUtil.hashPassword('123456'),
       })
       await this.userRepository.save(user)
+      user.channelUsers = []
     }
 
     return this.buildLoginResponse(user)
