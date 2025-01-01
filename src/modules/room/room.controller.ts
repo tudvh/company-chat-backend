@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common'
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
-import { CreateRoomRequest, GetCallInfoRequest } from './dto/request'
+import { CreateRoomRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 import { RoomService } from './room.service'
 
@@ -38,15 +38,15 @@ export class RoomController {
     return result
   }
 
-  @Post('call-info')
+  @Post(':roomId/call-info')
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: CallInfoResponse })
   @Auth()
   public async getCallInfo(
     @Req() request,
-    @Body() getCallInfoRequest: GetCallInfoRequest,
+    @Param('roomId') roomId: string,
   ): Promise<CallInfoResponse> {
-    const result = await this.roomService.getCallInfo(request.user, getCallInfoRequest)
+    const result = await this.roomService.getCallInfo(request.user, roomId)
     return result
   }
 

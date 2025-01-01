@@ -38,8 +38,8 @@ export class PusherService {
       user_id: uuidToInt(user.id).toString(),
       user_info: {
         id: user.id,
-        email: user.email,
-        avatar: this.userService.getAvatarUrl(user),
+        fullName: user.fullName,
+        avatarUrl: this.userService.getAvatarUrl(user),
       },
     }
 
