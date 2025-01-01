@@ -41,7 +41,7 @@ export class MessageService {
     sender: User,
     sendMessageRequest: SendMessageRequest,
     attachmentFiles?: Express.Multer.File[],
-  ): Promise<void> {
+  ): Promise<MessageResponse> {
     if (!sendMessageRequest.content && (!attachmentFiles || attachmentFiles.length <= 0)) {
       throw new BadRequestException('Content or attachment is required')
     }
@@ -57,7 +57,7 @@ export class MessageService {
       throw new BadRequestException('Room not found')
     }
 
-    await this.messageRepository.manager.transaction(async transactionalEntityManager => {
+    return await this.messageRepository.manager.transaction(async transactionalEntityManager => {
       const message = transactionalEntityManager.create(Message, {
         ...sendMessageRequest,
         senderId: sender.id,
