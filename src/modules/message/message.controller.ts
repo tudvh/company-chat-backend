@@ -37,7 +37,7 @@ export class MessageController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOkResponse()
+  @ApiOkResponse({ type: MessageResponse })
   @UseInterceptors(
     FilesInterceptor('attachments', 5, { fileFilter: UploadUtil.messageAttachmentFilter() }),
   )
@@ -46,7 +46,12 @@ export class MessageController {
     @Body() sendMessageRequest: SendMessageRequest,
     @Req() request,
     @UploadedFiles() attachments: Express.Multer.File[],
-  ): Promise<void> {
-    await this.messageService.sendMessage(request.user, sendMessageRequest, attachments)
+  ): Promise<MessageResponse> {
+    const result = await this.messageService.sendMessage(
+      request.user,
+      sendMessageRequest,
+      attachments,
+    )
+    return result
   }
 }
