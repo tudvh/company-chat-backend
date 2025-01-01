@@ -8,13 +8,18 @@ import { Repository } from 'typeorm'
 
 import { BcryptUtil } from '@/common/utils'
 import { User } from '@/database/entities'
+import { AuthProfileResponse } from '../user/dto/response'
 import { UserService } from '../user/user.service'
-import { AuthWithGoogleRequest, LoginRequest, RefreshAccessTokenRequest } from './dto/request'
+import {
+  AuthWithGoogleRequest,
+  BotLoginRequest,
+  LoginRequest,
+  RefreshAccessTokenRequest,
+} from './dto/request'
 import {
   AccessTokenResponse,
   AuthTokenResponse,
   LoginResponse,
-  ProfileResponse,
   RefreshTokenResponse,
 } from './dto/response'
 
@@ -30,8 +35,11 @@ export class AuthService {
   public async login(loginRequest: LoginRequest): Promise<LoginResponse> {
     const { email, password } = loginRequest
 
-    const user = await this.userRepository.findOneBy({
-      email,
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+      relations: ['channelUsers.channel'],
     })
     if (!user) {
       throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
@@ -39,6 +47,22 @@ export class AuthService {
 
     const isPasswordValid = await BcryptUtil.validatePassword(password, user.password)
     if (!isPasswordValid) {
+      throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
+    }
+
+    return this.buildLoginResponse(user)
+  }
+
+  public async loginForBot(loginRequest: BotLoginRequest): Promise<LoginResponse> {
+    const { email } = loginRequest
+
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+      relations: ['channelUsers.channel'],
+    })
+    if (!user) {
       throw new BadRequestException('Email hoặc mật khẩu không đúng. Vui lòng thử lại.')
     }
 
@@ -55,8 +79,11 @@ export class AuthService {
     })
     const { sub: googleId, name: fullName, picture: avatarUrl, email } = googleUserResponse.data
 
-    let user = await this.userRepository.findOneBy({
-      email,
+    let user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+      relations: ['channelUsers.channel'],
     })
 
     if (!user) {
@@ -65,6 +92,7 @@ export class AuthService {
         email,
         avatarUrl,
         googleId,
+        password: await BcryptUtil.hashPassword('123456'),
       })
       await this.userRepository.save(user)
     }
@@ -72,7 +100,7 @@ export class AuthService {
     return this.buildLoginResponse(user)
   }
 
-  public async getProfile(user: User): Promise<ProfileResponse> {
+  public async getProfile(user: User): Promise<AuthProfileResponse> {
     return this.transformToProfileResponse(user)
   }
 
@@ -83,8 +111,11 @@ export class AuthService {
       secret: this.configService.get('JWT_REFRESH_TOKEN_SECRET'),
     })
 
-    const user = await this.userRepository.findOneBy({
-      id: userId,
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+      relations: ['channelUsers.channel'],
     })
     if (!user) {
       throw new UnauthorizedException('Người dùng không tồn tại.')
@@ -97,6 +128,7 @@ export class AuthService {
     return {
       ...this.buildAuthTokenResponse(user),
       userProfile: this.transformToProfileResponse(user),
+      joinedChannelIds: user.joinedChannels.map(channel => channel.id),
     }
   }
 
@@ -128,9 +160,9 @@ export class AuthService {
     }
   }
 
-  private transformToProfileResponse(user: User): ProfileResponse {
+  private transformToProfileResponse(user: User): AuthProfileResponse {
     return plainToInstance(
-      ProfileResponse,
+      AuthProfileResponse,
       {
         ...user,
         avatarUrl: this.userService.getAvatarUrl(user),

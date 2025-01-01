@@ -30,13 +30,13 @@ export class ChannelController {
   @UseInterceptors(FileInterceptor('thumbnailFile', { fileFilter: UploadUtil.imageFileFilter() }))
   @Auth()
   async createChannel(
-    @Body() createChannelRequest: CreateChannelRequest,
     @Req() request,
+    @Body() createChannelRequest: CreateChannelRequest,
     @UploadedFile() thumbnailFile: Express.Multer.File,
   ): Promise<ChannelResponse> {
     const result = await this.channelService.createChannel(
-      createChannelRequest,
       request.user.id,
+      createChannelRequest,
       thumbnailFile,
     )
     return result

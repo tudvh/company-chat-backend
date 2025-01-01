@@ -1,9 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger'
 
+import { AuthProfileResponse } from '@/modules/user/dto/response'
 import { AuthTokenResponse } from './auth-token.response'
-import { ProfileResponse } from './profile.response'
 
 export class LoginResponse extends AuthTokenResponse {
   @ApiProperty()
-  userProfile: ProfileResponse
+  userProfile: AuthProfileResponse
+
+  @ApiProperty()
+  joinedChannelIds: string[]
 }

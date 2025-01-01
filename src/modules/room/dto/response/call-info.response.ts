@@ -6,4 +6,7 @@ export class CallInfoResponse {
 
   @ApiProperty()
   rtcToken: string
+
+  @ApiProperty()
+  uid: string | number
 }

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { Expose } from 'class-transformer'
 
-export class ProfileResponse {
+export class AuthProfileResponse {
   @ApiProperty()
   @Expose()
   id: string

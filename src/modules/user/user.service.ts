@@ -10,7 +10,7 @@ export class UserService {
 
   public getAvatarUrl(user: User): string | null {
     if (user.avatarPublicId) {
-      return this.cloudinaryService.generateSignedImageUrl(
+      return this.cloudinaryService.generateSignedUrl(
         user.avatarPublicId,
         URL_EXPIRATION.USER_AVATAR,
       )

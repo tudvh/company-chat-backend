@@ -8,11 +8,6 @@ dist
 .env
 .env.*
 
-# Ignore compiled files
-*.js
-*.jsx
-*.json
-
 # Ignore specific files or directories
 coverage
 logs

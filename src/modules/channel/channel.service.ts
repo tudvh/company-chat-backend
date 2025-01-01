@@ -31,8 +31,8 @@ export class ChannelService {
   ) {}
 
   public async createChannel(
-    createChannelRequest: CreateChannelRequest,
     creatorUserId: string,
+    createChannelRequest: CreateChannelRequest,
     thumbnailFile: Express.Multer.File,
   ): Promise<ChannelResponse> {
     // Start a transaction to create the channel and associated entities
@@ -272,7 +272,7 @@ export class ChannelService {
     if (!thumbnailPublicId) {
       return null
     }
-    return this.cloudinaryService.generateSignedImageUrl(
+    return this.cloudinaryService.generateSignedUrl(
       thumbnailPublicId,
       URL_EXPIRATION.CHANNEL_THUMBNAIL,
     )
