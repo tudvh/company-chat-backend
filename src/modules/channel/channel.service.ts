@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { plainToInstance } from 'class-transformer'
 import { UploadApiOptions } from 'cloudinary'
-import { EntityManager, Repository } from 'typeorm'
+import { Brackets, EntityManager, Repository } from 'typeorm'
 
 import {
   FOLDER_PATH,
@@ -119,23 +119,33 @@ export class ChannelService {
   }
 
   public async getChannelDetail(userId: string, channelId: string): Promise<ChannelDetailResponse> {
-    const channel = await this.channelRepository.findOneOrFail({
-      where: {
-        id: channelId,
-        channelUsers: {
-          userId,
-        },
-      },
-      relations: ['groups.rooms', 'channelUsers'],
-      order: {
-        groups: {
-          createdAt: 'ASC',
-          rooms: {
-            createdAt: 'ASC',
-          },
-        },
-      },
-    })
+    const channel = await this.channelRepository
+      .createQueryBuilder('channel')
+      .where('channel.id = :channelId', { channelId })
+      .innerJoinAndSelect('channel.channelUsers', 'channelUser', 'channelUser.userId = :userId', {
+        userId,
+      })
+      .leftJoinAndSelect('channel.groups', 'group')
+      .leftJoinAndSelect('group.rooms', 'room')
+      .leftJoin('room.users', 'roomUser', 'roomUser.id = :userId', { userId })
+      .andWhere(
+        new Brackets(qb => {
+          qb.where('channelUser.isCreator = :isCreator', { isCreator: true }).orWhere(
+            new Brackets(qb2 => {
+              qb2
+                .where('room.isPrivate = :isPrivate', { isPrivate: false })
+                .orWhere('roomUser.id IS NOT NULL')
+            }),
+          )
+        }),
+      )
+      .orderBy({
+        'group.createdAt': 'ASC',
+        'room.createdAt': 'ASC',
+      })
+      .getOneOrFail()
+
+    console.log('channel', channel)
 
     return this.mapToChannelDetailResponse(userId, channel)
   }
@@ -145,7 +155,7 @@ export class ChannelService {
       id: channelId,
     })
     if (!channel) {
-      throw new BadRequestException('Channel not found')
+      throw new BadRequestException('Không tìm thấy máy chủ')
     }
 
     let channelInvite = await this.channelInviteRepository.findOneBy({
@@ -175,12 +185,12 @@ export class ChannelService {
       relations: ['channel.channelUsers'],
     })
     if (!channelInvite) {
-      throw new BadRequestException('Invalid code')
+      throw new BadRequestException('Mã mời không hợp lệ')
     }
 
     const channel = channelInvite.channel
     if (channel.channelUsers.some(user => user.userId === userId)) {
-      throw new BadRequestException('User already in channel')
+      throw new BadRequestException('Bạn đã ở máy chủ này rồi')
     }
 
     const channelUser = this.channelUserRepository.create({
@@ -201,10 +211,10 @@ export class ChannelService {
       channelId,
     })
     if (!channelUser) {
-      throw new BadRequestException('User not in channel')
+      throw new BadRequestException('Bạn không có trong máy chủ này')
     }
     if (channelUser.isCreator) {
-      throw new BadRequestException('Creator cannot leave channel')
+      throw new BadRequestException('Người tạo không thể rời khỏi máy chủ của mình')
     }
 
     await this.channelUserRepository.softDelete(channelUser)

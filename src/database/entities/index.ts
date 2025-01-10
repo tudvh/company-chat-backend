@@ -1,3 +1,5 @@
+export * from './channel-permission-role.entity'
+export * from './channel-role.entity'
 export * from './channel-user.entity'
 export * from './channel.entity'
 export * from './group.entity'

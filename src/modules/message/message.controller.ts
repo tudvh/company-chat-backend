@@ -11,7 +11,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { Auth } from '@/common/decorators'
 import { UploadUtil } from '@/common/utils'
@@ -37,7 +37,7 @@ export class MessageController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOkResponse({ type: MessageResponse })
+  @ApiCreatedResponse({ type: MessageResponse })
   @UseInterceptors(
     FilesInterceptor('attachments', 5, { fileFilter: UploadUtil.messageAttachmentFilter() }),
   )
