@@ -1,4 +1,4 @@
-import { Expose } from 'class-transformer'
+import { Expose, Transform } from 'class-transformer'
 
 export class ChannelRoleResponse {
   @Expose()
@@ -9,4 +9,8 @@ export class ChannelRoleResponse {
 
   @Expose()
   createdAt: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.channelUsers.length)
+  channelUsersLength: number
 }

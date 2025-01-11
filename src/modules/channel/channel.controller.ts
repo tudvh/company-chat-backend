@@ -108,6 +108,19 @@ export class ChannelController {
   @ApiOkResponse({ type: RoleUserResponse })
   @Auth()
   async getAllUsersInChannel(@Param('channelId') channelId: string): Promise<RoleUserResponse[]> {
-    return this.channelService.getAllUsersInChannel(channelId)
+    const result = await this.channelService.getAllUsersInChannel(channelId)
+    return result
+  }
+
+  @Get(':channelId/user-permissions')
+  @HttpCode(HttpStatus.OK)
+  @ApiCreatedResponse({ type: [String] })
+  @Auth()
+  async getChannelUserPermissions(
+    @Req() request,
+    @Param('channelId') channelId: string,
+  ): Promise<string[]> {
+    const result = await this.channelService.getChannelUserPermissions(request.user.id, channelId)
+    return result
   }
 }
