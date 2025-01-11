@@ -34,13 +34,12 @@ export class ChannelRoleService {
       order: {
         createdAt: 'ASC',
       },
+      relations: ['channelUsers'],
     })
 
-    return channelRoles.map(channelRole =>
-      plainToInstance(ChannelRoleResponse, channelRole, {
-        excludeExtraneousValues: true,
-      }),
-    )
+    return plainToInstance(ChannelRoleResponse, channelRoles, {
+      excludeExtraneousValues: true,
+    })
   }
 
   public async createChannelRole(

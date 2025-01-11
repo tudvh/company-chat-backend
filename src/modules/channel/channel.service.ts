@@ -269,6 +269,32 @@ export class ChannelService {
     }))
   }
 
+  public async getChannelUserPermissions(userId: string, channelId: string): Promise<string[]> {
+    const channelUser = await this.channelUserRepository.findOne({
+      where: {
+        userId,
+        channelId,
+      },
+      relations: ['channelRoles.permissions'],
+    })
+
+    if (!channelUser) {
+      throw new BadRequestException('Không tìm thấy người dùng trong máy chủ')
+    }
+
+    const channelRolePermissions = channelUser.channelRoles.reduce<string[]>(
+      (permissions, channelRole) => {
+        return [
+          ...permissions,
+          ...channelRole.permissions.map(permission => permission.permissionId),
+        ]
+      },
+      [],
+    )
+
+    return channelRolePermissions
+  }
+
   private async processAndUploadThumbnail(
     transactionManager: EntityManager,
     newChannel: Channel,
