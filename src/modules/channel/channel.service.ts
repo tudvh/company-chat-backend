@@ -17,12 +17,15 @@ import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
 import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
+import { RoleUserResponse } from '../user/dto/response'
+import { UserService } from '../user/user.service'
 import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Injectable()
 export class ChannelService {
   constructor(
+    private readonly userService: UserService,
     @InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
     @InjectRepository(ChannelInvite)
     private readonly channelInviteRepository: Repository<ChannelInvite>,
@@ -218,6 +221,54 @@ export class ChannelService {
     await this.channelUserRepository.softDelete(channelUser)
   }
 
+  public async updateChannel(
+    updateChannelRequest: UpdateChannelRequest,
+    logo: Express.Multer.File,
+    channelId: string,
+  ): Promise<boolean> {
+    return this.channelRepository.manager.transaction(async transactionManager => {
+      const channel = await this.channelRepository.findOne({
+        where: {
+          id: channelId,
+        },
+      })
+
+      if (!channel) {
+        throw new Error(`Channel with ID ${channelId} not found.`)
+      }
+
+      channel.name = updateChannelRequest.name
+
+      if (logo) {
+        await this.processAndUploadThumbnail(transactionManager, channel, logo)
+      }
+
+      await transactionManager.save(channel)
+
+      return true
+    })
+  }
+
+  public async getAllUsersInChannel(channelId: string): Promise<RoleUserResponse[]> {
+    const channelUsers = await this.channelUserRepository.find({
+      where: {
+        channelId,
+      },
+      relations: ['user'],
+    })
+
+    if (!channelUsers) {
+      throw new BadRequestException('Không tìm thấy máy chủ')
+    }
+
+    return channelUsers.map(channelUser => ({
+      id: channelUser.user.id,
+      fullName: channelUser.user.fullName,
+      avatarUrl: this.userService.getAvatarUrl(channelUser.user),
+      isCreator: channelUser.isCreator,
+    }))
+  }
+
   private async processAndUploadThumbnail(
     transactionManager: EntityManager,
     newChannel: Channel,
@@ -284,33 +335,5 @@ export class ChannelService {
       thumbnailPublicId,
       URL_EXPIRATION.CHANNEL_THUMBNAIL,
     )
-  }
-
-  public async updateChannel(
-    updateChannelRequest: UpdateChannelRequest,
-    logo: Express.Multer.File,
-    channelId: string,
-  ): Promise<boolean> {
-    return this.channelRepository.manager.transaction(async transactionManager => {
-      const channel = await this.channelRepository.findOne({
-        where: {
-          id: channelId,
-        },
-      })
-
-      if (!channel) {
-        throw new Error(`Channel with ID ${channelId} not found.`)
-      }
-
-      channel.name = updateChannelRequest.name
-
-      if (logo) {
-        await this.processAndUploadThumbnail(transactionManager, channel, logo)
-      }
-
-      await transactionManager.save(channel)
-
-      return true
-    })
   }
 }

@@ -5,6 +5,7 @@ import { join } from 'path'
 
 import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './modules/auth/auth.module'
+import { ChannelRoleModule } from './modules/channel-role/channel-role.module'
 import { ChannelModule } from './modules/channel/channel.module'
 import { GroupModule } from './modules/group/group.module'
 import { HealthCheckModule } from './modules/health-check/health-check.module'
@@ -32,6 +33,7 @@ import { UserModule } from './modules/user/user.module'
     GroupModule,
     RoomModule,
     MessageModule,
+    ChannelRoleModule,
   ],
 })
 export class AppModule {}

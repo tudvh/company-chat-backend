@@ -6,16 +6,16 @@ import {
   HttpStatus,
   Param,
   Post,
-  Put,
   Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { ApiBody, ApiConsumes, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { Auth } from '@/common/decorators'
 import { UploadUtil } from '@/common/utils'
+import { RoleUserResponse } from '../user/dto/response'
 import { ChannelService } from './channel.service'
 import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
@@ -97,13 +97,17 @@ export class ChannelController {
   async updateInfoChannel(
     @Body() updateChannelRequest: UpdateChannelRequest,
     @UploadedFile() logo: Express.Multer.File,
-    @Param('channelId') channelId: string
-  ): Promise<Boolean> {
-    const result = await this.channelService.updateChannel(
-      updateChannelRequest,
-      logo,
-      channelId
-    )
+    @Param('channelId') channelId: string,
+  ): Promise<boolean> {
+    const result = await this.channelService.updateChannel(updateChannelRequest, logo, channelId)
     return result
+  }
+
+  @Get(':channelId/users')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RoleUserResponse })
+  @Auth()
+  async getAllUsersInChannel(@Param('channelId') channelId: string): Promise<RoleUserResponse[]> {
+    return this.channelService.getAllUsersInChannel(channelId)
   }
 }
