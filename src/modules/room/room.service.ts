@@ -72,13 +72,24 @@ export class RoomService {
     })
   }
 
-  public async getAllFreeRoom(channelId: string): Promise<string[]> {
+  public async getAllFreeRoom(channelId: string): Promise<Room[]> {
     const rooms = await this.roomRepository.find({
       where: {
         type: RoomTypeEnum.Call,
         group: {
           channelId: channelId,
         },
+      },
+      select: ['id', 'name'],
+    })
+
+    return rooms
+  }
+
+  public async getAllRoomBot(): Promise<string[]> {
+    const rooms = await this.roomRepository.find({
+      where: {
+        type: RoomTypeEnum.Chat,
       },
       select: ['id'],
       relations: ['group'],

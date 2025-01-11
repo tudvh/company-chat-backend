@@ -19,7 +19,7 @@ import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
 import { RoleUserResponse } from '../user/dto/response'
 import { UserService } from '../user/user.service'
-import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
+import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Injectable()
@@ -219,6 +219,34 @@ export class ChannelService {
     }
 
     await this.channelUserRepository.softDelete(channelUser)
+  }
+
+  public async updateChannel(
+    updateChannelRequest: UpdateChannelRequest,
+    logo: Express.Multer.File,
+    channelId: string,
+  ): Promise<boolean> {
+    return this.channelRepository.manager.transaction(async transactionManager => {
+      const channel = await this.channelRepository.findOne({
+        where: {
+          id: channelId,
+        },
+      })
+
+      if (!channel) {
+        throw new Error(`Channel with ID ${channelId} not found.`)
+      }
+
+      channel.name = updateChannelRequest.name
+
+      if (logo) {
+        await this.processAndUploadThumbnail(transactionManager, channel, logo)
+      }
+
+      await transactionManager.save(channel)
+
+      return true
+    })
   }
 
   public async getAllUsersInChannel(channelId: string): Promise<RoleUserResponse[]> {

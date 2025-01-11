@@ -95,7 +95,11 @@ export class MessageService {
 
       const messageResponse = this.mapSingleMessageToResponse(message, room.group.channelId)
 
-      await this.pusherService.trigger(sendMessageRequest.roomId, 'new-message', messageResponse)
+      await this.pusherService.trigger(sendMessageRequest.roomId, 'new-message', {
+        ...messageResponse,
+        room_id: room.id,
+        channel_id: room.group.channelId,
+      })
 
       return messageResponse
     })

@@ -15,6 +15,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 import { CreateRoomRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 import { RoomService } from './room.service'
+import { Room } from '@/database/entities'
 
 @Controller('rooms')
 @ApiTags('Room')
@@ -24,8 +25,16 @@ export class RoomController {
   @Get('get-all-free-room')
   @HttpCode(HttpStatus.OK)
   @Auth()
-  public async getAllFreeRoom(@Query('channelId') channelId: string): Promise<string[]> {
+  public async getAllFreeRoom(@Query('channelId') channelId: string): Promise<Room[]> {
     const result = await this.roomService.getAllFreeRoom(channelId)
+    return result
+  }
+
+  @Get('get-all-room-bot')
+  @HttpCode(HttpStatus.OK)
+  @Auth()
+  public async getAllRoomBot(): Promise<string[]> {
+    const result = await this.roomService.getAllRoomBot()
     return result
   }
 

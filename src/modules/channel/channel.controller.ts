@@ -17,7 +17,7 @@ import { Auth } from '@/common/decorators'
 import { UploadUtil } from '@/common/utils'
 import { RoleUserResponse } from '../user/dto/response'
 import { ChannelService } from './channel.service'
-import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
+import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Controller('channels')
@@ -87,6 +87,20 @@ export class ChannelController {
   @Auth()
   async leaveChannel(@Req() request, @Param('channelId') channelId: string): Promise<void> {
     return this.channelService.leaveChannel(request.user.id, channelId)
+  }
+
+  @Post(':channelId/update')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiCreatedResponse({ type: ChannelResponse })
+  @UseInterceptors(FileInterceptor('logo', { fileFilter: UploadUtil.imageFileFilter() }))
+  @Auth()
+  async updateInfoChannel(
+    @Body() updateChannelRequest: UpdateChannelRequest,
+    @UploadedFile() logo: Express.Multer.File,
+    @Param('channelId') channelId: string,
+  ): Promise<boolean> {
+    const result = await this.channelService.updateChannel(updateChannelRequest, logo, channelId)
+    return result
   }
 
   @Get(':channelId/users')
