@@ -17,7 +17,7 @@ import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
 import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
-import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
+import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Injectable()
@@ -144,8 +144,6 @@ export class ChannelService {
         'room.createdAt': 'ASC',
       })
       .getOneOrFail()
-
-    console.log('channel', channel)
 
     return this.mapToChannelDetailResponse(userId, channel)
   }
@@ -286,5 +284,33 @@ export class ChannelService {
       thumbnailPublicId,
       URL_EXPIRATION.CHANNEL_THUMBNAIL,
     )
+  }
+
+  public async updateChannel(
+    updateChannelRequest: UpdateChannelRequest,
+    logo: Express.Multer.File,
+    channelId: string,
+  ): Promise<boolean> {
+    return this.channelRepository.manager.transaction(async transactionManager => {
+      const channel = await this.channelRepository.findOne({
+        where: {
+          id: channelId,
+        },
+      })
+
+      if (!channel) {
+        throw new Error(`Channel with ID ${channelId} not found.`)
+      }
+
+      channel.name = updateChannelRequest.name
+
+      if (logo) {
+        await this.processAndUploadThumbnail(transactionManager, channel, logo)
+      }
+
+      await transactionManager.save(channel)
+
+      return true
+    })
   }
 }
