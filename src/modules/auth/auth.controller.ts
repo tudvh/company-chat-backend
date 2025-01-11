@@ -10,7 +10,7 @@ import {
   LoginRequest,
   RefreshAccessTokenRequest,
 } from './dto/request'
-import { AccessTokenResponse, AuthTokenResponse, LoginResponse } from './dto/response'
+import { AuthTokenResponse, LoginResponse } from './dto/response'
 
 @Controller('auth')
 @ApiTags('Auth')
