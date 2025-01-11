@@ -15,6 +15,7 @@ import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { Auth } from '@/common/decorators'
 import { UploadUtil } from '@/common/utils'
+import { RoleUserResponse } from '../user/dto/response'
 import { ChannelService } from './channel.service'
 import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
@@ -86,5 +87,13 @@ export class ChannelController {
   @Auth()
   async leaveChannel(@Req() request, @Param('channelId') channelId: string): Promise<void> {
     return this.channelService.leaveChannel(request.user.id, channelId)
+  }
+
+  @Get(':channelId/users')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse({ type: RoleUserResponse })
+  @Auth()
+  async getAllUsersInChannel(@Param('channelId') channelId: string): Promise<RoleUserResponse[]> {
+    return this.channelService.getAllUsersInChannel(channelId)
   }
 }

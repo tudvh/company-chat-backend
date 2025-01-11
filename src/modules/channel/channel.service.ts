@@ -17,12 +17,15 @@ import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
 import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
+import { RoleUserResponse } from '../user/dto/response'
+import { UserService } from '../user/user.service'
 import { CreateChannelRequest, JoinChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
 
 @Injectable()
 export class ChannelService {
   constructor(
+    private readonly userService: UserService,
     @InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
     @InjectRepository(ChannelInvite)
     private readonly channelInviteRepository: Repository<ChannelInvite>,
@@ -145,8 +148,6 @@ export class ChannelService {
       })
       .getOneOrFail()
 
-    console.log('channel', channel)
-
     return this.mapToChannelDetailResponse(userId, channel)
   }
 
@@ -218,6 +219,26 @@ export class ChannelService {
     }
 
     await this.channelUserRepository.softDelete(channelUser)
+  }
+
+  public async getAllUsersInChannel(channelId: string): Promise<RoleUserResponse[]> {
+    const channelUsers = await this.channelUserRepository.find({
+      where: {
+        channelId,
+      },
+      relations: ['user'],
+    })
+
+    if (!channelUsers) {
+      throw new BadRequestException('Không tìm thấy máy chủ')
+    }
+
+    return channelUsers.map(channelUser => ({
+      id: channelUser.user.id,
+      fullName: channelUser.user.fullName,
+      avatarUrl: this.userService.getAvatarUrl(channelUser.user),
+      isCreator: channelUser.isCreator,
+    }))
   }
 
   private async processAndUploadThumbnail(
