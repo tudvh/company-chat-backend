@@ -21,11 +21,13 @@ import { RoleUserResponse } from '../user/dto/response'
 import { UserService } from '../user/user.service'
 import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
+import { PusherService } from '../pusher/pusher.service'
 
 @Injectable()
 export class ChannelService {
   constructor(
     private readonly userService: UserService,
+    private readonly pusherService: PusherService,
     @InjectRepository(Channel) private readonly channelRepository: Repository<Channel>,
     @InjectRepository(ChannelInvite)
     private readonly channelInviteRepository: Repository<ChannelInvite>,
@@ -100,6 +102,8 @@ export class ChannelService {
         return newChannel
       },
     )
+
+    this.pusherService.trigger('notify-bot', 'new-room')
 
     // Return the created channel response with the thumbnail URL if available
     return this.mapToChannelDetailResponse(creatorUserId, createdChannel)
