@@ -259,6 +259,9 @@ export class ChannelService {
         channelId,
       },
       relations: ['user'],
+      order: {
+        isCreator: 'DESC',
+      },
     })
 
     if (!channelUsers) {
