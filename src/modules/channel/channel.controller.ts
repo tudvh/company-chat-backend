@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -122,5 +123,17 @@ export class ChannelController {
   ): Promise<string[]> {
     const result = await this.channelService.getChannelUserPermissions(request.user.id, channelId)
     return result
+  }
+
+  @Delete(':channelId/users/:userId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOkResponse()
+  @Auth()
+  async removeUser(
+    @Req() request,
+    @Param('channelId') channelId: string,
+    @Param('userId') userId: string,
+  ) {
+    await this.channelService.removeUser(request.user.id, channelId, userId)
   }
 }

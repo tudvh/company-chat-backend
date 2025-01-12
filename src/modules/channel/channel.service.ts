@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { plainToInstance } from 'class-transformer'
 import { UploadApiOptions } from 'cloudinary'
@@ -17,11 +17,11 @@ import { UploadUtil } from '@/common/utils'
 import { Channel, ChannelUser, Group, Room } from '@/database/entities'
 import { ChannelInvite } from '@/database/entities/channel-invite.entity'
 import { CloudinaryService } from '../cloudinary/cloudinary.service'
+import { PusherService } from '../pusher/pusher.service'
 import { RoleUserResponse } from '../user/dto/response'
 import { UserService } from '../user/user.service'
 import { CreateChannelRequest, JoinChannelRequest, UpdateChannelRequest } from './dto/request'
 import { ChannelDetailResponse, ChannelInviteResponse, ChannelResponse } from './dto/response'
-import { PusherService } from '../pusher/pusher.service'
 
 @Injectable()
 export class ChannelService {
@@ -297,6 +297,44 @@ export class ChannelService {
     )
 
     return channelRolePermissions
+  }
+
+  public async removeUser(userId: string, channelId: string, removeUserId: string): Promise<void> {
+    if (userId === removeUserId) {
+      throw new BadRequestException('Bạn không thể xóa mình khỏi máy chủ của chính mình')
+    }
+
+    const channelUser = await this.channelUserRepository.findOne({
+      where: {
+        channelId,
+        userId,
+      },
+      relations: ['channel'],
+    })
+
+    if (!channelUser) {
+      throw new BadRequestException('Máy chủ không tồn tại hoặc bạn không phải thành viên')
+    }
+
+    if (!channelUser.isCreator) {
+      throw new ForbiddenException('Bạn không có quyền xóa thành viên khỏi máy chủ')
+    }
+
+    const userToRemove = await this.channelUserRepository.findOne({
+      where: {
+        channelId,
+        userId: removeUserId,
+      },
+    })
+
+    if (!userToRemove) {
+      throw new BadRequestException('Không tìm thấy thành viên cần xóa trong máy chủ')
+    }
+
+    await this.channelUserRepository.softDelete({
+      channelId,
+      userId: removeUserId,
+    })
   }
 
   private async processAndUploadThumbnail(
