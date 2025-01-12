@@ -8,6 +8,7 @@ import { Repository } from 'typeorm'
 import { RoomTypeEnum } from '@/common/enums'
 import { uuidToInt } from '@/common/helpers'
 import { Room, User } from '@/database/entities'
+import { PusherService } from '../pusher/pusher.service'
 import { CreateRoomRequest } from './dto/request'
 import { CallInfoResponse, RoomResponse } from './dto/response'
 
@@ -15,6 +16,7 @@ import { CallInfoResponse, RoomResponse } from './dto/response'
 export class RoomService {
   constructor(
     private readonly configService: ConfigService,
+    private readonly pusherService: PusherService,
     @InjectRepository(Room) private readonly roomRepository: Repository<Room>,
   ) {}
 
@@ -66,6 +68,8 @@ export class RoomService {
   public async createRoom(createRoomRequest: CreateRoomRequest): Promise<RoomResponse> {
     const room = this.roomRepository.create(createRoomRequest)
     await this.roomRepository.save(room)
+
+    this.pusherService.trigger('notify-bot', 'new-room')
 
     return plainToInstance(RoomResponse, room, {
       excludeExtraneousValues: true,
